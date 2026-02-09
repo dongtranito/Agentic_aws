@@ -40,3 +40,8 @@ Thumbs.db
 
 .nx/cache
 .nx/workspace-data
+
+
+runtime-config.json
+vitest.config.*.timestamp*
+vite.config.*.timestamp*

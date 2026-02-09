@@ -1,0 +1,123 @@
+{
+  "name": "@play-c463-z26-rzy-mar-tech/web-ui",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/web-ui/src",
+  "projectType": "application",
+  "tags": [],
+  "metadata": {
+    "generator": "ts#react-website",
+    "uxProvider": "Cloudscape",
+    "components": [
+      {
+        "generator": "ts#react-website#runtime-config"
+      },
+      {
+        "generator": "ts#react-website#auth"
+      }
+    ]
+  },
+  "targets": {
+    "build": {
+      "dependsOn": ["lint", "compile", "bundle", "test"],
+      "options": {
+        "outputPath": "dist/packages/web-ui/bundle"
+      }
+    },
+    "bundle": {
+      "executor": "@nx/vite:build",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/packages/web-ui/bundle"
+      },
+      "configurations": {
+        "development": {
+          "mode": "development"
+        },
+        "production": {
+          "mode": "production"
+        }
+      }
+    },
+    "compile": {
+      "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}/tsc"],
+      "options": {
+        "command": "tsc --build tsconfig.app.json",
+        "cwd": "{projectRoot}"
+      }
+    },
+    "load:runtime-config": {
+      "executor": "nx:run-commands",
+      "metadata": {
+        "description": "Load runtime config from your deployed stack for dev purposes. You must set your AWS CLI credentials whilst calling 'pnpm exec nx run @play-c463-z26-rzy-mar-tech/web-ui:load:runtime-config'"
+      },
+      "options": {
+        "command": "aws s3 cp s3://`aws cloudformation describe-stacks --query \"Stacks[?starts_with(StackName, 'play-c463-z26-rzy-mar-tech-')][].Outputs[] | [?contains(OutputKey, 'WebUiWebsiteBucketName')].OutputValue\" --output text`/runtime-config.json './packages/web-ui/public/runtime-config.json'"
+      }
+    },
+    "preview": {
+      "dependsOn": ["build"],
+      "executor": "@nx/vite:preview-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "@play-c463-z26-rzy-mar-tech/web-ui:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "@play-c463-z26-rzy-mar-tech/web-ui:build:development"
+        },
+        "production": {
+          "buildTarget": "@play-c463-z26-rzy-mar-tech/web-ui:build:production"
+        }
+      }
+    },
+    "serve": {
+      "executor": "@nx/vite:dev-server",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "@play-c463-z26-rzy-mar-tech/web-ui:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "@play-c463-z26-rzy-mar-tech/web-ui:build:development",
+          "hmr": true
+        },
+        "production": {
+          "buildTarget": "@play-c463-z26-rzy-mar-tech/web-ui:build:production",
+          "hmr": false
+        }
+      }
+    },
+    "serve-local": {
+      "executor": "@nx/vite:dev-server",
+      "options": {
+        "buildTarget": "@play-c463-z26-rzy-mar-tech/web-ui:build:development",
+        "hmr": true,
+        "mode": "serve-local"
+      },
+      "continuous": true,
+      "dependsOn": [
+        {
+          "projects": ["@play-c463-z26-rzy-mar-tech/api"],
+          "target": "serve"
+        }
+      ]
+    },
+    "serve-static": {
+      "executor": "@nx/web:file-server",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "@play-c463-z26-rzy-mar-tech/web-ui:build",
+        "spa": true
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../coverage/packages/web-ui"
+      }
+    }
+  }
+}
