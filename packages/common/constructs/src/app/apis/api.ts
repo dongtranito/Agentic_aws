@@ -10,6 +10,7 @@ import {
 } from 'aws-cdk-lib/aws-lambda';
 import {
   AuthorizationType,
+  CognitoUserPoolsAuthorizer,
   Cors,
   LambdaIntegration,
 } from 'aws-cdk-lib/aws-apigateway';
@@ -29,6 +30,7 @@ import {
 import { RestApi } from '../../core/api/rest-api.js';
 import { Procedures, routerToOperations } from '../../core/api/trpc-utils.js';
 import { AppRouter, appRouter } from ':play-c463-z26-rzy-mar-tech/api';
+import { IUserPool } from 'aws-cdk-lib/aws-cognito';
 
 // String union type for all API operation names
 type Operations = Procedures<AppRouter>;
@@ -45,6 +47,12 @@ export interface ApiProps<
    * Map of operation names to their API Gateway integrations
    */
   integrations: TIntegrations;
+  /**
+   * Identity details for Cognito Authentication
+   */
+  identity: {
+    userPool: IUserPool;
+  };
 }
 
 /**
@@ -93,7 +101,10 @@ export class Api<
     super(scope, id, {
       apiName: 'Api',
       defaultMethodOptions: {
-        authorizationType: AuthorizationType.IAM,
+        authorizationType: AuthorizationType.COGNITO,
+        authorizer: new CognitoUserPoolsAuthorizer(scope, 'ApiAuthorizer', {
+          cognitoUserPools: [props.identity.userPool],
+        }),
       },
       defaultCorsPreflightOptions: {
         allowOrigins: Cors.ALL_ORIGINS,

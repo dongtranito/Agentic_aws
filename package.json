@@ -29,6 +29,7 @@
     "aws-cdk-lib": "2.237.1",
     "aws-xray-sdk-core": "3.12.0",
     "aws4fetch": "1.0.20",
+    "config": "^4.2.0",
     "constructs": "10.4.5",
     "esbuild": "0.27.2",
     "oidc-client-ts": "3.4.1",
@@ -37,6 +38,7 @@
     "react-oidc-context": "3.3.0",
     "source-map-support": "0.5.21",
     "tailwindcss": "4.1.18",
+    "yaml": "^2.8.2",
     "zod": "4.3.6"
   },
   "devDependencies": {
@@ -62,6 +64,7 @@
     "@testing-library/dom": "10.4.0",
     "@testing-library/react": "16.3.0",
     "@types/aws-lambda": "8.10.160",
+    "@types/config": "^3.3.5",
     "@types/cors": "2.8.19",
     "@types/node": "22.19.8",
     "@types/react": "^19.0.0",

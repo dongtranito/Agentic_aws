@@ -1,0 +1,4 @@
+deploymentConfig:
+  adminUser:
+    email: email@domain.com
+    username: admin

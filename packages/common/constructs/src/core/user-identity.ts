@@ -7,6 +7,7 @@ import {
   AccountRecovery,
   CfnManagedLoginBranding,
   CfnUserPoolDomain,
+  CfnUserPoolUser,
   FeaturePlan,
   Mfa,
   OAuthScope,
@@ -17,6 +18,11 @@ import { Construct } from 'constructs';
 import { RuntimeConfig } from './runtime-config.js';
 import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
 import { suppressRules } from './checkov.js';
+import type { IAdminUser } from ':play-c463-z26-rzy-mar-tech/types';
+
+export interface IdentityProps {
+  readonly adminUser?: IAdminUser;
+}
 
 const WEB_CLIENT_ID = 'WebClient';
 /**
@@ -29,7 +35,7 @@ export class UserIdentity extends Construct {
   public readonly userPoolClient: UserPoolClient;
   public readonly userPoolDomain: CfnUserPoolDomain;
 
-  constructor(scope: Construct, id: string) {
+  constructor(scope: Construct, id: string, props: IdentityProps) {
     super(scope, id);
 
     this.region = Stack.of(this).region;
@@ -59,6 +65,19 @@ export class UserIdentity extends Construct {
       'SMS Role requires wildcard resource',
       (c) => c.node.path.includes('/smsRole/'),
     );
+
+    if (props.adminUser) {
+      new CfnUserPoolUser(this, 'AdminUser', {
+        userPoolId: this.userPool.userPoolId,
+        desiredDeliveryMediums: ['EMAIL'],
+        forceAliasCreation: true,
+        username: props.adminUser.username,
+        userAttributes: [
+          { name: 'email_verified', value: 'true' },
+          { name: 'email', value: props.adminUser.email },
+        ],
+      });
+    }
 
     new CfnOutput(this, `${id}-UserPoolId`, {
       value: this.userPool.userPoolId,

@@ -1,8 +1,6 @@
 import { useContext } from 'react';
-import {
-  RuntimeConfigContext,
-  IRuntimeConfig,
-} from '../components/RuntimeConfig';
+import { RuntimeConfigContext } from '../components/RuntimeConfig';
+import { IRuntimeConfig } from ':play-c463-z26-rzy-mar-tech/types';
 
 export const useRuntimeConfig = (): IRuntimeConfig => {
   const runtimeConfig = useContext(RuntimeConfigContext);

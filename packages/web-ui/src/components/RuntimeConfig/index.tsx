@@ -1,3 +1,4 @@
+import type { IRuntimeConfig } from ':play-c463-z26-rzy-mar-tech/types';
 import { Spinner } from '../spinner';
 import React, {
   createContext,
@@ -7,7 +8,6 @@ import React, {
 } from 'react';
 
 // Consider specifying types if desired
-export type IRuntimeConfig = any;
 
 /**
  * Context for storing the runtimeConfig.
