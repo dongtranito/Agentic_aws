@@ -20,15 +20,15 @@
     "baseUrl": ".",
     "rootDir": ".",
     "paths": {
+      ":play-c463-z26-rzy-mar-tech/api": ["packages/api/src/index.ts"],
       ":play-c463-z26-rzy-mar-tech/common-constructs": [
         "packages/common/constructs/src/index.ts"
       ],
-      ":play-c463-z26-rzy-mar-tech/api": ["packages/api/src/index.ts"],
-      ":play-c463-z26-rzy-mar-tech/web-ui": ["packages/web-ui/src/index.ts"],
       ":play-c463-z26-rzy-mar-tech/infra": ["packages/infra/src/index.ts"],
       ":play-c463-z26-rzy-mar-tech/types": [
         "packages/common/types/src/index.ts"
-      ]
+      ],
+      ":play-c463-z26-rzy-mar-tech/web-ui": ["packages/web-ui/src/index.ts"]
     }
   }
 }

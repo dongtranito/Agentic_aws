@@ -11,7 +11,8 @@
         "compile",
         "test",
         "@play-c463-z26-rzy-mar-tech/api:build",
-        "@play-c463-z26-rzy-mar-tech/web-ui:build"
+        "@play-c463-z26-rzy-mar-tech/web-ui:build",
+        "play_c463_z26_rzy_mar_tech.marketer:build"
       ]
     },
     "compile": {

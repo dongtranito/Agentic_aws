@@ -1,4 +1,5 @@
 import {
+  MarketerAgent,
   UserIdentity,
   WebUi,
 } from ':play-c463-z26-rzy-mar-tech/common-constructs';
@@ -26,6 +27,8 @@ export class ApplicationStack extends Stack {
     const api = new APIConstruct(this, 'ApiConstruct', {
       userPool: identity.userPool,
     });
+
+    new MarketerAgent(this, 'Agent');
 
     const web = new WebUi(this, 'WebUi');
 
