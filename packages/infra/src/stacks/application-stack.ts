@@ -1,4 +1,7 @@
-import { UserIdentity } from ':play-c463-z26-rzy-mar-tech/common-constructs';
+import {
+  UserIdentity,
+  WebUi,
+} from ':play-c463-z26-rzy-mar-tech/common-constructs';
 import { IDeploymentConfig } from ':play-c463-z26-rzy-mar-tech/types';
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
@@ -20,8 +23,12 @@ export class ApplicationStack extends Stack {
       adminUser: deploymentConfig.adminUser,
     });
 
-    new APIConstruct(this, 'ApiConstruct', {
+    const api = new APIConstruct(this, 'ApiConstruct', {
       userPool: identity.userPool,
     });
+
+    const web = new WebUi(this, 'WebUi');
+
+    web.bucketDeployment.node.addDependency(api.restAPI);
   }
 }
