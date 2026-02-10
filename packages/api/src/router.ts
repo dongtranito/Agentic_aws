@@ -2,14 +2,14 @@ import {
   awsLambdaRequestHandler,
   CreateAWSLambdaContextOptions,
 } from '@trpc/server/adapters/aws-lambda';
-import { echo } from './procedures/echo.js';
+import { campaignsRouter } from './routers/campaigns.js';
 import { t } from './init.js';
 import type { APIGatewayProxyEvent } from 'aws-lambda';
 
 export const router = t.router;
 
 export const appRouter = router({
-  echo,
+  campaign: campaignsRouter,
 });
 
 export const handler = awsLambdaRequestHandler({

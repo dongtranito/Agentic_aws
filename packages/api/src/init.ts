@@ -13,6 +13,8 @@ process.env.POWERTOOLS_METRICS_NAMESPACE = 'Api';
 export type Context = IMiddlewareContext;
 
 export const t = initTRPC.context<Context>().create();
+export const trpcRouter = t.router;
+export type ContextInputOpts<T> = { input: T; ctx: Context };
 
 export const publicProcedure = t.procedure
   .concat(createLoggerPlugin())
