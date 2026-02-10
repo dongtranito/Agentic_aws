@@ -1,5 +1,4 @@
 import {
-  MarketerAgent,
   UserIdentity,
   WebUi,
 } from ':play-c463-z26-rzy-mar-tech/common-constructs';
@@ -7,6 +6,7 @@ import { IDeploymentConfig } from ':play-c463-z26-rzy-mar-tech/types';
 import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { APIConstruct } from '../constructs/api.js';
+import { AgentConstruct } from '../constructs/agent.js';
 
 export interface ApplicationStackProps extends StackProps {
   readonly deploymentConfig: IDeploymentConfig;
@@ -28,7 +28,7 @@ export class ApplicationStack extends Stack {
       userPool: identity.userPool,
     });
 
-    new MarketerAgent(this, 'Agent');
+    new AgentConstruct(this, 'Agents');
 
     const web = new WebUi(this, 'WebUi');
 
