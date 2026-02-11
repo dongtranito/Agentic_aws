@@ -1,5 +1,5 @@
 import { publicProcedure } from '../init.js';
-import { getConfigLambda } from '../lambdas/getCampaign.js';
+import { getCampaignLambda } from '../lambdas/getCampaign.js';
 import {
   GetCampaignInputSchema,
   GetCampaignOutputSchema,
@@ -8,4 +8,4 @@ import {
 export const getCampaign = publicProcedure
   .input(GetCampaignInputSchema)
   .output(GetCampaignOutputSchema)
-  .query(getConfigLambda);
+  .query(getCampaignLambda);

@@ -7,6 +7,7 @@ import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { APIConstruct } from '../constructs/api.js';
 import { AgentConstruct } from '../constructs/agent.js';
+import { StorageAndData } from '../constructs/storage-data.js';
 
 export interface ApplicationStackProps extends StackProps {
   readonly deploymentConfig: IDeploymentConfig;
@@ -24,8 +25,11 @@ export class ApplicationStack extends Stack {
       adminUser: deploymentConfig.adminUser,
     });
 
+    const storage = new StorageAndData(this, 'StorageAndData');
     const api = new APIConstruct(this, 'ApiConstruct', {
       userPool: identity.userPool,
+      campaignsTable: storage.campaigns,
+      sessionsBucket: storage.sessionsBucket,
     });
 
     new AgentConstruct(this, 'Agents');
