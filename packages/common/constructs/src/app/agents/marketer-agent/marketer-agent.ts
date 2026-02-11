@@ -28,7 +28,7 @@ export class MarketerAgent extends Construct {
       {
         platform: Platform.LINUX_ARM64,
         extraHash: execSync(
-          `docker inspect play-c463-z26-rzy-mar-tech-marketer-agent:latest --format '{{.Id}}'`,
+          `docker inspect marketer-agent:latest --format '{{.Id}}'`,
           { encoding: 'utf-8' },
         ).trim(),
       },

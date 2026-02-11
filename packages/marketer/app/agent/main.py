@@ -28,6 +28,7 @@ async def handle_invoke(input: InvokeInput):
 @app.post("/invocations", openapi_extra={"x-streaming": True}, response_class=PlainTextResponse)
 async def invoke(input: InvokeInput) -> str:
     """Entry point for agent invocation"""
+    print("log")
     return StreamingResponse(handle_invoke(input), media_type="text/event-stream")
 
 
