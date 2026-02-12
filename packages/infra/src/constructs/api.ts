@@ -4,6 +4,7 @@
  */
 import { Api } from ':play-c463-z26-rzy-mar-tech/common-constructs';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as ddb from 'aws-cdk-lib/aws-dynamodb';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -24,11 +25,18 @@ export class APIConstruct extends Construct {
 
     const { userPool, campaignsTable } = props;
 
+    const integrations = Api.defaultIntegrations(this).build();
+
+    integrations['chat.put'].integration = new apigateway.LambdaIntegration(
+      integrations['chat.put'].handler,
+      { responseTransferMode: apigateway.ResponseTransferMode.STREAM },
+    );
+
     const api = new Api(this, 'RestAPI', {
       identity: {
         userPool,
       },
-      integrations: Api.defaultIntegrations(this).build(),
+      integrations,
     });
 
     const getCampaginHandler = api.integrations['campaign.get'].handler;

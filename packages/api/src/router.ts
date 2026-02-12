@@ -5,11 +5,13 @@ import {
 import { campaignsRouter } from './routers/campaigns.js';
 import { t } from './init.js';
 import type { APIGatewayProxyEvent } from 'aws-lambda';
+import { chatRouter } from './routers/chat.js';
 
 export const router = t.router;
 
 export const appRouter = router({
   campaign: campaignsRouter,
+  chat: chatRouter,
 });
 
 export const handler = awsLambdaRequestHandler({
