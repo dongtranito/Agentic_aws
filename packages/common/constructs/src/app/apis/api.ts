@@ -1,20 +1,14 @@
 import { Construct } from 'constructs';
-import * as url from 'url';
 import { Distribution } from 'aws-cdk-lib/aws-cloudfront';
-import {
-  Code,
-  Runtime,
-  Function,
-  FunctionProps,
-  Tracing,
-} from 'aws-cdk-lib/aws-lambda';
+import { Function } from 'aws-cdk-lib/aws-lambda';
 import {
   AuthorizationType,
   CognitoUserPoolsAuthorizer,
   Cors,
   LambdaIntegration,
+  RestApi as CdkRestApi,
+  Stage,
 } from 'aws-cdk-lib/aws-apigateway';
-import { Duration } from 'aws-cdk-lib';
 import {
   PolicyDocument,
   PolicyStatement,
@@ -23,88 +17,65 @@ import {
   IGrantable,
   Grant,
 } from 'aws-cdk-lib/aws-iam';
-import {
-  IntegrationBuilder,
-  RestApiIntegration,
-} from '../../core/api/utils.js';
-import { RestApi } from '../../core/api/rest-api.js';
-import { Procedures, routerToOperations } from '../../core/api/trpc-utils.js';
-import { AppRouter, appRouter } from ':play-c463-z26-rzy-mar-tech/api';
 import { IUserPool } from 'aws-cdk-lib/aws-cognito';
-
-// String union type for all API operation names
-type Operations = Procedures<AppRouter>;
+import { RuntimeConfig } from '../../core/runtime-config.js';
+import { suppressRules } from '../../core/checkov.js';
 
 /**
- * Properties for creating a Api construct
- *
- * @template TIntegrations - Map of operation names to their integrations
+ * Integration configuration for an API endpoint
  */
-export interface ApiProps<
-  TIntegrations extends Record<Operations, RestApiIntegration>,
-> {
-  /**
-   * Map of operation names to their API Gateway integrations
-   */
-  integrations: TIntegrations;
+export interface ApiIntegration {
+  handler: Function;
+  integration: LambdaIntegration;
+}
+
+/**
+ * Properties for creating the Api construct
+ */
+export interface ApiProps {
   /**
    * Identity details for Cognito Authentication
    */
   identity: {
     userPool: IUserPool;
   };
+  /**
+   * Lambda handler for GET /campaign/:id
+   */
+  getCampaign: ApiIntegration;
+  /**
+   * Lambda handler for PUT /chat (streaming)
+   */
+  putChat: ApiIntegration;
 }
 
 /**
- * A CDK construct that creates and configures an AWS API Gateway REST API
- * specifically for Api.
- * @template TIntegrations - Map of operation names to their integrations
+ * A CDK construct that creates a simple REST API with two endpoints:
+ * - GET /campaign/:id - Get campaign details
+ * - PUT /chat - Streaming chat endpoint
  */
-export class Api<
-  TIntegrations extends Record<Operations, RestApiIntegration>,
-> extends RestApi<Operations, TIntegrations> {
-  /**
-   * Creates default integrations for all operations, which implement each operation as
-   * its own individual lambda function.
-   *
-   * @param scope - The CDK construct scope
-   * @returns An IntegrationBuilder with default lambda integrations
-   */
-  public static defaultIntegrations = (scope: Construct) => {
-    return IntegrationBuilder.rest({
-      operations: routerToOperations(appRouter),
-      defaultIntegrationOptions: {
-        runtime: Runtime.NODEJS_LATEST,
-        handler: 'index.handler',
-        code: Code.fromAsset(
-          url.fileURLToPath(
-            new URL(
-              '../../../../../../dist/packages/api/bundle',
-              import.meta.url,
-            ),
-          ),
-        ),
-        timeout: Duration.seconds(30),
-        tracing: Tracing.ACTIVE,
-        environment: {
-          AWS_CONNECTION_REUSE_ENABLED: '1',
-        },
-      } satisfies FunctionProps,
-      buildDefaultIntegration: (op, props: FunctionProps) => {
-        const handler = new Function(scope, `Api${op}Handler`, props);
-        return { handler, integration: new LambdaIntegration(handler) };
-      },
-    });
-  };
+export class Api extends Construct {
+  public readonly api: CdkRestApi;
+  public readonly getCampaignHandler: Function;
+  public readonly putChatHandler: Function;
 
-  constructor(scope: Construct, id: string, props: ApiProps<TIntegrations>) {
-    super(scope, id, {
-      apiName: 'Api',
+  constructor(scope: Construct, id: string, props: ApiProps) {
+    super(scope, id);
+
+    const { identity, getCampaign, putChat } = props;
+
+    this.getCampaignHandler = getCampaign.handler;
+    this.putChatHandler = putChat.handler;
+
+    const authorizer = new CognitoUserPoolsAuthorizer(this, 'ApiAuthorizer', {
+      cognitoUserPools: [identity.userPool],
+    });
+
+    this.api = new CdkRestApi(this, 'Api', {
+      restApiName: 'Api',
       defaultMethodOptions: {
         authorizationType: AuthorizationType.COGNITO,
-        authorizer: new CognitoUserPoolsAuthorizer(scope, 'ApiAuthorizer', {
-          cognitoUserPools: [props.identity.userPool],
-        }),
+        authorizer,
       },
       defaultCorsPreflightOptions: {
         allowOrigins: Cors.ALL_ORIGINS,
@@ -115,7 +86,7 @@ export class Api<
       },
       policy: new PolicyDocument({
         statements: [
-          // Open up OPTIONS to allow browsers to make unauthenticated preflight requests
+          // Allow unauthenticated preflight requests
           new PolicyStatement({
             effect: Effect.ALLOW,
             principals: [new AnyPrincipal()],
@@ -124,20 +95,39 @@ export class Api<
           }),
         ],
       }),
-      operations: routerToOperations(appRouter),
-      ...props,
     });
+
+    suppressRules(
+      this.api,
+      ['CKV_AWS_120'],
+      'Caching not required for this use case',
+      (c) => c instanceof Stage,
+    );
+    suppressRules(
+      this.api,
+      ['CKV_AWS_76'],
+      'API Gateway access logging disabled due to account-level CloudWatch Logs role ARN requirement',
+      (c) => c instanceof Stage,
+    );
+
+    // GET /campaign/{id}
+    const campaignResource = this.api.root.addResource('campaign');
+    const campaignIdResource = campaignResource.addResource('{id}');
+    campaignIdResource.addMethod('GET', getCampaign.integration);
+
+    // PUT /chat
+    const chatResource = this.api.root.addResource('chat');
+    chatResource.addMethod('PUT', putChat.integration);
+
+    // Register the API URL in runtime configuration
+    RuntimeConfig.ensure(this).config.apis = {
+      ...RuntimeConfig.ensure(this).config.apis!,
+      Api: this.api.url!,
+    };
   }
 
   /**
    * Restricts CORS to the website CloudFront distribution domains
-   *
-   * Configures the CloudFront distribution domains as the only permitted CORS origins
-   * (other than local host) in the AWS Lambda integrations
-   *
-   * Note that this restriction is not applied to preflight OPTIONS
-   *
-   * @param websites - The CloudFront distribution to grant CORS from
    */
   public restrictCorsTo(
     ...websites: { cloudFrontDistribution: Distribution }[]
@@ -149,23 +139,14 @@ export class Api<
       )
       .join(',');
 
-    // Set ALLOWED_ORIGINS environment variable for all Lambda integrations
-    Object.values(this.integrations).forEach((integration) => {
-      if ('handler' in integration && integration.handler instanceof Function) {
-        integration.handler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
-      }
-    });
+    this.getCampaignHandler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
+    this.putChatHandler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
   }
 
   /**
    * Grants IAM permissions to invoke any method on this API.
-   *
-   * @param grantee - The IAM principal to grant permissions to
    */
   public grantInvokeAccess(grantee: IGrantable) {
-    // Here we grant grantee permission to call the api.
-    // Machine to machine fine-grained access can be defined here using more specific principals (eg roles or
-    // users) and resources (eg which api paths may be invoked by which principal) if required.
     this.api.addToResourcePolicy(
       new PolicyStatement({
         effect: Effect.ALLOW,

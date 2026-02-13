@@ -26,13 +26,13 @@ export class ApplicationStack extends Stack {
     });
 
     const storage = new StorageAndData(this, 'StorageAndData');
+    const agents = new AgentConstruct(this, 'Agents');
     const api = new APIConstruct(this, 'ApiConstruct', {
       userPool: identity.userPool,
       campaignsTable: storage.campaigns,
       sessionsBucket: storage.sessionsBucket,
+      marketerAgent: agents.marketer,
     });
-
-    new AgentConstruct(this, 'Agents');
 
     const web = new WebUi(this, 'WebUi');
 

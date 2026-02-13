@@ -5,10 +5,9 @@
   "projectType": "library",
   "tags": [],
   "metadata": {
-    "generator": "ts#trpc-api",
-    "ports": [2022],
+    "generator": "ts#rest-api",
     "apiName": "api",
-    "apiType": "trpc",
+    "apiType": "rest",
     "auth": "IAM"
   },
   "targets": {
@@ -20,7 +19,7 @@
       "outputs": ["{workspaceRoot}/dist/{projectRoot}/bundle"],
       "executor": "nx:run-commands",
       "options": {
-        "command": "rolldown -c rolldown.config.ts",
+        "command": "node esbuild.config.mjs",
         "cwd": "{projectRoot}"
       },
       "dependsOn": ["compile"]
@@ -32,14 +31,6 @@
         "command": "tsc --build tsconfig.lib.json",
         "cwd": "{projectRoot}"
       }
-    },
-    "serve": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": ["tsx --watch src/local-server.ts"],
-        "cwd": "packages/api"
-      },
-      "continuous": true
     },
     "test": {
       "executor": "@nx/vitest:test",

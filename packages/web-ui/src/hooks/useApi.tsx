@@ -1,18 +1,10 @@
 import { useContext } from 'react';
-import { ApiTRPCContext } from '../components/ApiClientProvider';
+import { ApiContext, ApiClient } from '../components/ApiClientProvider';
 
-export const useApi = () => {
-  const container = useContext(ApiTRPCContext);
-  if (!container) {
+export const useApi = (): ApiClient => {
+  const client = useContext(ApiContext);
+  if (!client) {
     throw new Error('useApi must be used within ApiClientProvider');
   }
-  return container.optionsProxy;
-};
-
-export const useApiClient = () => {
-  const container = useContext(ApiTRPCContext);
-  if (!container) {
-    throw new Error('useApiClient must be used within ApiClientProvider');
-  }
-  return container.client;
+  return client;
 };

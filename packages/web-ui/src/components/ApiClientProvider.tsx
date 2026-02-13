@@ -1,52 +1,72 @@
-import { AppRouter } from ':play-c463-z26-rzy-mar-tech/api';
-import { useQueryClient } from '@tanstack/react-query';
-import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query';
+import type {
+  IGetCampaignOutput,
+  IPutChatInput,
+} from ':play-c463-z26-rzy-mar-tech/api';
 import { createContext, FC, PropsWithChildren, useMemo } from 'react';
 import { useRuntimeConfig } from '../hooks/useRuntimeConfig';
-import {
-  HTTPLinkOptions,
-  TRPCClient,
-  createTRPCClient,
-  httpLink,
-} from '@trpc/client';
 import { useSigV4 } from '../hooks/useSigV4';
 
-interface ApiTRPCContextValue {
-  optionsProxy: ReturnType<typeof createTRPCOptionsProxy<AppRouter>>;
-  client: TRPCClient<AppRouter>;
+export interface ApiClient {
+  campaign: {
+    get: (id: string) => Promise<IGetCampaignOutput>;
+  };
+  chat: {
+    put: (
+      input: IPutChatInput,
+      onChunk?: (chunk: string) => void,
+    ) => Promise<void>;
+  };
 }
 
-export const ApiTRPCContext = createContext<ApiTRPCContextValue | null>(null);
+export const ApiContext = createContext<ApiClient | null>(null);
 
 export const ApiClientProvider: FC<PropsWithChildren> = ({ children }) => {
-  const queryClient = useQueryClient();
   const runtimeConfig = useRuntimeConfig();
-  const apiUrl = runtimeConfig.apis.Api;
-  const sigv4Client = useSigV4();
+  const apiUrl = runtimeConfig.apis.Api.replace(/\/$/, '');
+  const sigv4Fetch = useSigV4();
 
-  const container = useMemo<ApiTRPCContextValue>(() => {
-    const linkOptions: HTTPLinkOptions<any> = {
-      url: apiUrl,
-      fetch: sigv4Client,
-    };
-
-    const client = createTRPCClient<AppRouter>({
-      links: [httpLink(linkOptions)],
-    });
-
-    const optionsProxy = createTRPCOptionsProxy<AppRouter>({
-      client,
-      queryClient,
-    });
-
-    return { optionsProxy, client };
-  }, [apiUrl, queryClient, sigv4Client]);
-
-  return (
-    <ApiTRPCContext.Provider value={container}>
-      {children}
-    </ApiTRPCContext.Provider>
+  const client = useMemo<ApiClient>(
+    () => ({
+      campaign: {
+        get: async (id: string) => {
+          const response = await sigv4Fetch(`${apiUrl}/campaign/${id}`, {
+            method: 'GET',
+          });
+          if (!response.ok) {
+            throw new Error(`Failed to get campaign: ${response.statusText}`);
+          }
+          return response.json();
+        },
+      },
+      chat: {
+        put: async (
+          input: IPutChatInput,
+          onChunk?: (chunk: string) => void,
+        ) => {
+          const response = await sigv4Fetch(`${apiUrl}/chat`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(input),
+          });
+          if (!response.ok) {
+            throw new Error(`Failed to send chat: ${response.statusText}`);
+          }
+          if (response.body && onChunk) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              onChunk(decoder.decode(value, { stream: true }));
+            }
+          }
+        },
+      },
+    }),
+    [apiUrl, sigv4Fetch],
   );
+
+  return <ApiContext.Provider value={client}>{children}</ApiContext.Provider>;
 };
 
 export default ApiClientProvider;
