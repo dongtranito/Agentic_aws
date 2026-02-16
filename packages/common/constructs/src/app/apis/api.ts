@@ -44,6 +44,10 @@ export interface ApiProps {
    */
   getCampaign: ApiIntegration;
   /**
+   * Lambda handler for GET /campaign
+   */
+  getCampaigns: ApiIntegration;
+  /**
    * Lambda handler for PUT /chat (streaming)
    */
   putChat: ApiIntegration;
@@ -57,14 +61,16 @@ export interface ApiProps {
 export class Api extends Construct {
   public readonly api: CdkRestApi;
   public readonly getCampaignHandler: Function;
+  public readonly getCampaignsHandler: Function;
   public readonly putChatHandler: Function;
 
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
 
-    const { identity, getCampaign, putChat } = props;
+    const { identity, getCampaign, getCampaigns, putChat } = props;
 
     this.getCampaignHandler = getCampaign.handler;
+    this.getCampaignsHandler = getCampaigns.handler;
     this.putChatHandler = putChat.handler;
 
     const authorizer = new CognitoUserPoolsAuthorizer(this, 'ApiAuthorizer', {
@@ -80,18 +86,19 @@ export class Api extends Construct {
       defaultCorsPreflightOptions: {
         allowOrigins: Cors.ALL_ORIGINS,
         allowMethods: Cors.ALL_METHODS,
+        allowHeaders: Cors.DEFAULT_HEADERS,
       },
       deployOptions: {
         tracingEnabled: true,
       },
       policy: new PolicyDocument({
         statements: [
-          // Allow unauthenticated preflight requests
+          // Allow all requests - Cognito authorizer handles authentication
           new PolicyStatement({
             effect: Effect.ALLOW,
             principals: [new AnyPrincipal()],
             actions: ['execute-api:Invoke'],
-            resources: ['execute-api:/*/OPTIONS/*'],
+            resources: ['execute-api:/*'],
           }),
         ],
       }),
@@ -112,6 +119,7 @@ export class Api extends Construct {
 
     // GET /campaign/{id}
     const campaignResource = this.api.root.addResource('campaign');
+    campaignResource.addMethod('GET', getCampaigns.integration);
     const campaignIdResource = campaignResource.addResource('{id}');
     campaignIdResource.addMethod('GET', getCampaign.integration);
 
@@ -140,6 +148,7 @@ export class Api extends Construct {
       .join(',');
 
     this.getCampaignHandler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
+    this.getCampaignsHandler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
     this.putChatHandler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
   }
 

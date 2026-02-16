@@ -53,6 +53,30 @@ export class APIConstruct extends Construct {
       }),
     );
 
+    // Lambda for GET /campaign (list all)
+    const getCampaignsHandler = new lambda.Function(
+      this,
+      'GetCampaignsHandler',
+      {
+        runtime: lambda.Runtime.NODEJS_LATEST,
+        handler: 'index.getCampaigns.handler',
+        code: lambda.Code.fromAsset(apiBundlePath),
+        timeout: Duration.seconds(30),
+        tracing: lambda.Tracing.ACTIVE,
+        environment: {
+          CAMPAIGNS_TABLE_NAME: campaignsTable.tableName,
+        },
+      },
+    );
+
+    getCampaignsHandler.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['dynamodb:Scan'],
+        resources: [campaignsTable.tableArn],
+      }),
+    );
+
     // Lambda for PUT /chat (streaming)
     const putChatHandler = new lambda.Function(this, 'PutChatHandler', {
       runtime: lambda.Runtime.NODEJS_LATEST,
@@ -71,6 +95,10 @@ export class APIConstruct extends Construct {
       getCampaign: {
         handler: getCampaignHandler,
         integration: new apigateway.LambdaIntegration(getCampaignHandler),
+      },
+      getCampaigns: {
+        handler: getCampaignsHandler,
+        integration: new apigateway.LambdaIntegration(getCampaignsHandler),
       },
       putChat: {
         handler: putChatHandler,

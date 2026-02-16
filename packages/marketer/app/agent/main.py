@@ -1,21 +1,18 @@
+import json
+
 import uvicorn
 from bedrock_agentcore.runtime.models import PingStatus
+from fastapi import Header, Request
 from fastapi.responses import PlainTextResponse, StreamingResponse
-from pydantic import BaseModel
 
 from .agent import get_agent
 from .init import app
 
 
-class InvokeInput(BaseModel):
-    prompt: str
-    session_id: str
-
-
-async def handle_invoke(input: InvokeInput):
+async def handle_invoke(prompt: str, session_id: str):
     """Streaming handler for agent invocation"""
-    with get_agent(session_id=input.session_id) as agent:
-        stream = agent.stream_async(input.prompt)
+    with get_agent(session_id=session_id) as agent:
+        stream = agent.stream_async(prompt)
         async for event in stream:
             print(event)
             content = event.get("event", {}).get("contentBlockDelta", {}).get("delta", {}).get("text")
@@ -26,10 +23,24 @@ async def handle_invoke(input: InvokeInput):
 
 
 @app.post("/invocations", openapi_extra={"x-streaming": True}, response_class=PlainTextResponse)
-async def invoke(input: InvokeInput) -> str:
+async def invoke(
+    request: Request,
+    x_amzn_bedrock_agentcore_runtime_session_id: str = Header(
+        default="default-session", alias="x-amzn-bedrock-agentcore-runtime-session-id"
+    ),
+) -> str:
     """Entry point for agent invocation"""
-    print("log")
-    return StreamingResponse(handle_invoke(input), media_type="text/event-stream")
+    # AgentCore sends payload as application/octet-stream, so we parse manually
+    body = await request.body()
+    data = json.loads(body)
+    prompt = data.get("prompt", "")
+
+    print(f"Received prompt: {prompt}, session_id: {x_amzn_bedrock_agentcore_runtime_session_id}")
+
+    return StreamingResponse(
+        handle_invoke(prompt, x_amzn_bedrock_agentcore_runtime_session_id),
+        media_type="text/event-stream",
+    )
 
 
 @app.get("/ping")

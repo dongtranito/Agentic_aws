@@ -29,6 +29,7 @@ export const handler = awslambda.streamifyResponse(
         Connection: 'keep-alive',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
       },
     };
 
@@ -39,9 +40,18 @@ export const handler = awslambda.streamifyResponse(
 
     try {
       const body = event.body ? JSON.parse(event.body) : {};
-      const { prompt, id: sessionId } = body;
+      const { prompt, id } = body;
+
+      // runtimeSessionId must be at least 33 characters
+      const sessionId = `session-${id || crypto.randomUUID()}`;
 
       const payload = JSON.stringify({ prompt });
+
+      console.log('Invoking agent with:', {
+        agentRuntimeArn: AGENT_RUNTIME_ARN,
+        sessionId,
+        prompt,
+      });
 
       const command = new InvokeAgentRuntimeCommand({
         agentRuntimeArn: AGENT_RUNTIME_ARN,

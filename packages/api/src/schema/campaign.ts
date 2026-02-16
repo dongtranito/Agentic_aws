@@ -27,3 +27,11 @@ export const GetCampaignOutputSchema = CampaignOutput.extend({
 });
 
 export type IGetCampaignOutput = z.TypeOf<typeof GetCampaignOutputSchema>;
+
+// Get campaigns (list)
+
+export const GetCampaignsOutputSchema = z.object({
+  campaigns: z.array(CampaignOutput),
+});
+
+export type IGetCampaignsOutput = z.TypeOf<typeof GetCampaignsOutputSchema>;

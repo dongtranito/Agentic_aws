@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
@@ -18,6 +19,22 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 # Add exception middleware(s)
 app.add_middleware(ExceptionMiddleware, handlers=app.exception_handlers)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    print("=== VALIDATION ERROR ===")
+    print(f"URL: {request.url}")
+    print(f"Method: {request.method}")
+    print(f"Headers: {dict(request.headers)}")
+    body = await request.body()
+    print(f"Body: {body}")
+    print(f"Errors: {exc.errors()}")
+    print("=== END VALIDATION ERROR ===")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors()},
+    )
 
 
 @app.exception_handler(Exception)

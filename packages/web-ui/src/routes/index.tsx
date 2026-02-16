@@ -2,9 +2,10 @@ import {
   ContentLayout,
   Header,
   SpaceBetween,
-  Container,
 } from '@cloudscape-design/components';
 import { createFileRoute } from '@tanstack/react-router';
+import { Chat } from '../components/Chat';
+import { CampaignsList } from '../components/CampaignsList';
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -12,9 +13,10 @@ export const Route = createFileRoute('/')({
 
 function RouteComponent() {
   return (
-    <ContentLayout header={<Header>Welcome</Header>}>
+    <ContentLayout header={<Header>Marketing Agent</Header>}>
       <SpaceBetween size="l">
-        <Container>Welcome to your new React website!</Container>
+        <CampaignsList />
+        <Chat />
       </SpaceBetween>
     </ContentLayout>
   );
