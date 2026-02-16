@@ -76,11 +76,22 @@ export const CampaignsList = () => {
           </Box>
         ) : (
           <Table
+            variant="embedded"
             items={campaigns}
             columnDefinitions={[
               {
+                id: 'id',
+                header: 'ID',
+                cell: (item) => item.id,
+              },
+              {
                 id: 'name',
                 header: 'Name',
+                cell: (item) => item.name,
+              },
+              {
+                id: 'actions',
+                header: 'Actions',
                 cell: (item) => (
                   <Link
                     onFollow={(e) => {
@@ -91,14 +102,9 @@ export const CampaignsList = () => {
                       });
                     }}
                   >
-                    {item.name}
+                    Details
                   </Link>
                 ),
-              },
-              {
-                id: 'id',
-                header: 'ID',
-                cell: (item) => item.id,
               },
             ]}
             empty={
