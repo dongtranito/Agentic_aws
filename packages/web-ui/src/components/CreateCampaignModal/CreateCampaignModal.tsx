@@ -1,0 +1,91 @@
+import { useState } from 'react';
+import {
+  Modal,
+  Box,
+  SpaceBetween,
+  Button,
+  FormField,
+  Input,
+} from '@cloudscape-design/components';
+import { useApi } from '../../hooks/useApi';
+import { useNavigate } from '@tanstack/react-router';
+
+interface CreateCampaignModalProps {
+  visible: boolean;
+  onDismiss: () => void;
+}
+
+export const CreateCampaignModal = ({
+  visible,
+  onDismiss,
+}: CreateCampaignModalProps) => {
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const api = useApi();
+  const navigate = useNavigate();
+
+  const handleSubmit = async () => {
+    if (!name.trim()) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const campaign = await api.campaign.create({ name: name.trim() });
+      onDismiss();
+      setName('');
+      navigate({ to: '/campaign/$id', params: { id: campaign.id } });
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Failed to create campaign',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDismiss = () => {
+    setName('');
+    setError(null);
+    onDismiss();
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      onDismiss={handleDismiss}
+      header="Create Campaign"
+      footer={
+        <Box float="right">
+          <SpaceBetween direction="horizontal" size="xs">
+            <Button variant="link" onClick={handleDismiss}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSubmit}
+              loading={loading}
+              disabled={!name.trim()}
+            >
+              Create
+            </Button>
+          </SpaceBetween>
+        </Box>
+      }
+    >
+      <SpaceBetween size="m">
+        <FormField label="Campaign Name" errorText={error}>
+          <Input
+            value={name}
+            onChange={({ detail }) => setName(detail.value)}
+            placeholder="Enter campaign name"
+            disabled={loading}
+          />
+        </FormField>
+      </SpaceBetween>
+    </Modal>
+  );
+};
+
+export default CreateCampaignModal;

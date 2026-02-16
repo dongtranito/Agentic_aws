@@ -7,6 +7,7 @@ import {
   InvokeAgentRuntimeCommand,
 } from '@aws-sdk/client-bedrock-agentcore';
 import type { APIGatewayProxyEvent } from 'aws-lambda';
+import { corsHeaders } from './utils/index.js';
 
 const client = new BedrockAgentCoreClient({});
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -27,9 +28,7 @@ export const handler = awslambda.streamifyResponse(
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         Connection: 'keep-alive',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': '*',
-        'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+        ...corsHeaders,
       },
     };
 

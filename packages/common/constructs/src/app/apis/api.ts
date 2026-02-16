@@ -48,6 +48,10 @@ export interface ApiProps {
    */
   getCampaigns: ApiIntegration;
   /**
+   * Lambda handler for POST /campaign
+   */
+  createCampaign: ApiIntegration;
+  /**
    * Lambda handler for PUT /chat (streaming)
    */
   putChat: ApiIntegration;
@@ -62,15 +66,18 @@ export class Api extends Construct {
   public readonly api: CdkRestApi;
   public readonly getCampaignHandler: Function;
   public readonly getCampaignsHandler: Function;
+  public readonly createCampaignHandler: Function;
   public readonly putChatHandler: Function;
 
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
 
-    const { identity, getCampaign, getCampaigns, putChat } = props;
+    const { identity, getCampaign, getCampaigns, createCampaign, putChat } =
+      props;
 
     this.getCampaignHandler = getCampaign.handler;
     this.getCampaignsHandler = getCampaigns.handler;
+    this.createCampaignHandler = createCampaign.handler;
     this.putChatHandler = putChat.handler;
 
     const authorizer = new CognitoUserPoolsAuthorizer(this, 'ApiAuthorizer', {
@@ -117,9 +124,10 @@ export class Api extends Construct {
       (c) => c instanceof Stage,
     );
 
-    // GET /campaign/{id}
+    // GET /campaign, POST /campaign, GET /campaign/{id}
     const campaignResource = this.api.root.addResource('campaign');
     campaignResource.addMethod('GET', getCampaigns.integration);
+    campaignResource.addMethod('POST', createCampaign.integration);
     const campaignIdResource = campaignResource.addResource('{id}');
     campaignIdResource.addMethod('GET', getCampaign.integration);
 
@@ -149,6 +157,10 @@ export class Api extends Construct {
 
     this.getCampaignHandler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
     this.getCampaignsHandler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
+    this.createCampaignHandler.addEnvironment(
+      'ALLOWED_ORIGINS',
+      allowedOrigins,
+    );
     this.putChatHandler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
   }
 

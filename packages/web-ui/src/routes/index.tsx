@@ -1,10 +1,5 @@
-import {
-  ContentLayout,
-  Header,
-  SpaceBetween,
-} from '@cloudscape-design/components';
+import { ContentLayout, Header } from '@cloudscape-design/components';
 import { createFileRoute } from '@tanstack/react-router';
-import { Chat } from '../components/Chat';
 import { CampaignsList } from '../components/CampaignsList';
 
 export const Route = createFileRoute('/')({
@@ -14,10 +9,7 @@ export const Route = createFileRoute('/')({
 function RouteComponent() {
   return (
     <ContentLayout header={<Header>Marketing Agent</Header>}>
-      <SpaceBetween size="l">
-        <CampaignsList />
-        <Chat />
-      </SpaceBetween>
+      <CampaignsList />
     </ContentLayout>
   );
 }

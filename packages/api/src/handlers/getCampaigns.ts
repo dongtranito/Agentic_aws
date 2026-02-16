@@ -2,31 +2,27 @@
  * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
-
-const ddbClient = new DynamoDBClient({});
-const ddb = DynamoDBDocumentClient.from(ddbClient);
+import type { APIGatewayProxyResult } from 'aws-lambda';
+import { QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { ddb, corsHeaders } from './utils/index.js';
 
 const CAMPAIGNS_TABLE_NAME = process.env.CAMPAIGNS_TABLE_NAME!;
+const CAMPAIGN_ACTIVE_INDEX = process.env.CAMPAIGN_ACTIVE_INDEX!;
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-};
-console.log('abc');
 /**
  * Lambda handler for GET /campaign
  */
-export const handler = async (
-  _event: APIGatewayProxyEvent,
-): Promise<APIGatewayProxyResult> => {
+export const handler = async (): Promise<APIGatewayProxyResult> => {
   try {
     const response = await ddb.send(
-      new ScanCommand({
+      new QueryCommand({
         TableName: CAMPAIGNS_TABLE_NAME,
+        IndexName: CAMPAIGN_ACTIVE_INDEX,
+        KeyConditionExpression: 'active = :active',
+        ExpressionAttributeValues: {
+          ':active': 'Y',
+        },
+        ScanIndexForward: false,
       }),
     );
 

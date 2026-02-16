@@ -1,4 +1,6 @@
 import type {
+  ICreateCampaignInput,
+  ICreateCampaignOutput,
   IGetCampaignOutput,
   IGetCampaignsOutput,
   IPutChatInput,
@@ -11,6 +13,7 @@ export interface ApiClient {
   campaign: {
     get: (id: string) => Promise<IGetCampaignOutput>;
     list: () => Promise<IGetCampaignsOutput>;
+    create: (input: ICreateCampaignInput) => Promise<ICreateCampaignOutput>;
   };
   chat: {
     put: (
@@ -51,6 +54,22 @@ export const ApiClientProvider: FC<PropsWithChildren> = ({ children }) => {
           });
           if (!response.ok) {
             throw new Error(`Failed to get campaigns: ${response.statusText}`);
+          }
+          return response.json();
+        },
+        create: async (input: ICreateCampaignInput) => {
+          const response = await fetch(`${apiUrl}/campaign`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${auth.user?.id_token}`,
+            },
+            body: JSON.stringify(input),
+          });
+          if (!response.ok) {
+            throw new Error(
+              `Failed to create campaign: ${response.statusText}`,
+            );
           }
           return response.json();
         },

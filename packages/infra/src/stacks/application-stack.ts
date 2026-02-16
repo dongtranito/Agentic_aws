@@ -30,6 +30,7 @@ export class ApplicationStack extends Stack {
     const api = new APIConstruct(this, 'ApiConstruct', {
       userPool: identity.userPool,
       campaignsTable: storage.campaigns,
+      campaignActiveIndex: storage.taskActiveIndex,
       sessionsBucket: storage.sessionsBucket,
       marketerAgent: agents.marketer,
     });

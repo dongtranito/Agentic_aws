@@ -17,9 +17,15 @@ import * as url from 'url';
 export interface APIConstructProps {
   readonly userPool: cognito.IUserPool;
   readonly campaignsTable: ddb.ITable;
+  readonly campaignActiveIndex: string;
   readonly sessionsBucket: s3.IBucket;
   readonly marketerAgent: MarketerAgent;
 }
+
+const getBundlePath = (handler: string) =>
+  url.fileURLToPath(
+    new URL(`../../../../dist/packages/api/bundle/${handler}`, import.meta.url),
+  );
 
 export class APIConstruct extends Construct {
   readonly restAPI: apigateway.RestApi;
@@ -27,17 +33,14 @@ export class APIConstruct extends Construct {
   constructor(scope: Construct, id: string, props: APIConstructProps) {
     super(scope, id);
 
-    const { userPool, campaignsTable, marketerAgent } = props;
-
-    const apiBundlePath = url.fileURLToPath(
-      new URL('../../../../dist/packages/api/bundle', import.meta.url),
-    );
+    const { userPool, campaignsTable, campaignActiveIndex, marketerAgent } =
+      props;
 
     // Lambda for GET /campaign/:id
     const getCampaignHandler = new lambda.Function(this, 'GetCampaignHandler', {
       runtime: lambda.Runtime.NODEJS_LATEST,
-      handler: 'index.getCampaign.handler',
-      code: lambda.Code.fromAsset(apiBundlePath),
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset(getBundlePath('getCampaign')),
       timeout: Duration.seconds(30),
       tracing: lambda.Tracing.ACTIVE,
       environment: {
@@ -59,8 +62,33 @@ export class APIConstruct extends Construct {
       'GetCampaignsHandler',
       {
         runtime: lambda.Runtime.NODEJS_LATEST,
-        handler: 'index.getCampaigns.handler',
-        code: lambda.Code.fromAsset(apiBundlePath),
+        handler: 'index.handler',
+        code: lambda.Code.fromAsset(getBundlePath('getCampaigns')),
+        timeout: Duration.seconds(30),
+        tracing: lambda.Tracing.ACTIVE,
+        environment: {
+          CAMPAIGNS_TABLE_NAME: campaignsTable.tableName,
+          CAMPAIGN_ACTIVE_INDEX: campaignActiveIndex,
+        },
+      },
+    );
+
+    getCampaignsHandler.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['dynamodb:Query'],
+        resources: [`${campaignsTable.tableArn}/index/${campaignActiveIndex}`],
+      }),
+    );
+
+    // Lambda for POST /campaign
+    const createCampaignHandler = new lambda.Function(
+      this,
+      'CreateCampaignHandler',
+      {
+        runtime: lambda.Runtime.NODEJS_LATEST,
+        handler: 'index.handler',
+        code: lambda.Code.fromAsset(getBundlePath('createCampaign')),
         timeout: Duration.seconds(30),
         tracing: lambda.Tracing.ACTIVE,
         environment: {
@@ -69,10 +97,10 @@ export class APIConstruct extends Construct {
       },
     );
 
-    getCampaignsHandler.addToRolePolicy(
+    createCampaignHandler.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ['dynamodb:Scan'],
+        actions: ['dynamodb:PutItem'],
         resources: [campaignsTable.tableArn],
       }),
     );
@@ -80,8 +108,8 @@ export class APIConstruct extends Construct {
     // Lambda for PUT /chat (streaming)
     const putChatHandler = new lambda.Function(this, 'PutChatHandler', {
       runtime: lambda.Runtime.NODEJS_LATEST,
-      handler: 'index.putChat.handler',
-      code: lambda.Code.fromAsset(apiBundlePath),
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset(getBundlePath('putChat')),
       timeout: Duration.minutes(5),
       environment: {
         AGENT_RUNTIME_ARN: marketerAgent.agentCoreRuntime.agentRuntimeArn,
@@ -99,6 +127,10 @@ export class APIConstruct extends Construct {
       getCampaigns: {
         handler: getCampaignsHandler,
         integration: new apigateway.LambdaIntegration(getCampaignsHandler),
+      },
+      createCampaign: {
+        handler: createCampaignHandler,
+        integration: new apigateway.LambdaIntegration(createCampaignHandler),
       },
       putChat: {
         handler: putChatHandler,

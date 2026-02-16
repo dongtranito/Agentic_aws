@@ -3,18 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
-
-const ddbClient = new DynamoDBClient({});
-const ddb = DynamoDBDocumentClient.from(ddbClient);
+import { GetCommand } from '@aws-sdk/lib-dynamodb';
+import { ddb, corsHeaders } from './utils/index.js';
 
 const CAMPAIGNS_TABLE_NAME = process.env.CAMPAIGNS_TABLE_NAME!;
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': '*',
-};
 
 /**
  * Lambda handler for GET /campaign/:id

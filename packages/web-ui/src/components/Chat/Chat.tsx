@@ -6,6 +6,7 @@ import {
   Button,
   Textarea,
   Spinner,
+  Header,
 } from '@cloudscape-design/components';
 import type { TextareaProps } from '@cloudscape-design/components';
 import { useApi } from '../../hooks/useApi';
@@ -15,7 +16,11 @@ interface Message {
   content: string;
 }
 
-export const Chat = () => {
+interface ChatProps {
+  campaignId?: string;
+}
+
+export const Chat = ({ campaignId }: ChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +49,7 @@ export const Chat = () => {
 
     try {
       await api.chat.put(
-        { id: crypto.randomUUID(), prompt: input.trim() },
+        { id: campaignId || crypto.randomUUID(), prompt: input.trim() },
         (chunk) => {
           streamingContentRef.current += chunk;
           setStreamingContent(streamingContentRef.current);
@@ -100,7 +105,7 @@ export const Chat = () => {
   };
 
   return (
-    <Container>
+    <Container header={<Header>Chat</Header>}>
       <SpaceBetween size="m">
         <div style={messageContainerStyle}>
           {messages.map((msg, idx) => (
