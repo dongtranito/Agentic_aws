@@ -30,8 +30,15 @@ export type IGetCampaignOutput = z.TypeOf<typeof GetCampaignOutputSchema>;
 
 // Get campaigns (list)
 
+export const CampaignListItemSchema = CampaignOutput.extend({
+  createdAt: unixtime,
+  updatedAt: unixtime,
+});
+
+export type ICampaignListItem = z.TypeOf<typeof CampaignListItemSchema>;
+
 export const GetCampaignsOutputSchema = z.object({
-  campaigns: z.array(CampaignOutput),
+  campaigns: z.array(CampaignListItemSchema),
 });
 
 export type IGetCampaignsOutput = z.TypeOf<typeof GetCampaignsOutputSchema>;

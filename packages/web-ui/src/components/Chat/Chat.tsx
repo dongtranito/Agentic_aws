@@ -3,12 +3,13 @@ import {
   Container,
   SpaceBetween,
   Box,
-  Button,
-  Textarea,
-  Spinner,
   Header,
+  LiveRegion,
+  PromptInput,
 } from '@cloudscape-design/components';
-import type { TextareaProps } from '@cloudscape-design/components';
+import ChatBubble from '@cloudscape-design/chat-components/chat-bubble';
+import Avatar from '@cloudscape-design/chat-components/avatar';
+import LoadingBar from '@cloudscape-design/chat-components/loading-bar';
 import { useApi } from '../../hooks/useApi';
 
 interface Message {
@@ -56,10 +57,13 @@ export const Chat = ({ campaignId }: ChatProps) => {
         },
       );
 
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: streamingContentRef.current },
-      ]);
+      const finalContent = streamingContentRef.current;
+      if (finalContent) {
+        setMessages((prev) => [
+          ...prev,
+          { role: 'assistant', content: finalContent },
+        ]);
+      }
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -75,96 +79,110 @@ export const Chat = ({ campaignId }: ChatProps) => {
     }
   };
 
-  const handleKeyDown: TextareaProps['onKeyDown'] = ({ detail }) => {
-    if (detail.key === 'Enter' && !detail.shiftKey) {
-      handleSend();
-    }
-  };
-
-  const messageContainerStyle: React.CSSProperties = {
+  const chatContainerStyle: React.CSSProperties = {
     height: '400px',
     overflowY: 'auto',
-    border: '1px solid var(--color-border-divider-default)',
-    borderRadius: '8px',
     padding: '12px',
-    backgroundColor: 'var(--color-background-container-content)',
   };
 
-  const userMessageStyle: React.CSSProperties = {
-    backgroundColor: 'var(--color-background-status-info)',
-    borderRadius: '8px',
-    marginBottom: '8px',
-    marginLeft: '20%',
-  };
-
-  const assistantMessageStyle: React.CSSProperties = {
-    backgroundColor: 'var(--color-background-container-header)',
-    borderRadius: '8px',
-    marginBottom: '8px',
-    marginRight: '20%',
+  const userBubbleStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   };
 
   return (
     <Container header={<Header>Chat</Header>}>
       <SpaceBetween size="m">
-        <div style={messageContainerStyle}>
-          {messages.map((msg, idx) => (
-            <Box key={idx} padding="s" data-role={msg.role}>
-              <div
-                style={
-                  msg.role === 'user' ? userMessageStyle : assistantMessageStyle
+        <div
+          role="region"
+          aria-label="Chat messages"
+          style={chatContainerStyle}
+        >
+          <SpaceBetween size="m">
+            {messages.map((msg, idx) =>
+              msg.role === 'user' ? (
+                <div key={idx} style={userBubbleStyle}>
+                  <ChatBubble
+                    ariaLabel={`You: ${msg.content}`}
+                    type="outgoing"
+                    avatar={
+                      <Avatar ariaLabel="User" color="default" initials="U" />
+                    }
+                    hideAvatar
+                  >
+                    {msg.content}
+                  </ChatBubble>
+                  <div style={{ marginLeft: '8px' }}>
+                    <Avatar ariaLabel="User" color="default" initials="U" />
+                  </div>
+                </div>
+              ) : (
+                <ChatBubble
+                  key={idx}
+                  ariaLabel={`AI Assistant: ${msg.content}`}
+                  type="incoming"
+                  avatar={
+                    <Avatar
+                      ariaLabel="AI Assistant"
+                      color="gen-ai"
+                      initials="AI"
+                    />
+                  }
+                >
+                  {msg.content}
+                </ChatBubble>
+              ),
+            )}
+            {isLoading && streamingContent && (
+              <ChatBubble
+                ariaLabel={`AI Assistant: ${streamingContent}`}
+                type="incoming"
+                avatar={
+                  <Avatar
+                    ariaLabel="AI Assistant"
+                    color="gen-ai"
+                    initials="AI"
+                  />
                 }
               >
-                <Box padding="s">
-                  <Box variant="awsui-key-label">
-                    {msg.role === 'user' ? 'You' : 'Assistant'}
-                  </Box>
-                  <Box>{msg.content}</Box>
+                {streamingContent}
+              </ChatBubble>
+            )}
+            {isLoading && !streamingContent && (
+              <ChatBubble
+                ariaLabel="AI Assistant is thinking"
+                type="incoming"
+                avatar={
+                  <Avatar
+                    ariaLabel="AI Assistant"
+                    color="gen-ai"
+                    initials="AI"
+                    loading
+                  />
+                }
+              >
+                <Box>
+                  <LoadingBar variant="gen-ai" />
                 </Box>
-              </div>
-            </Box>
-          ))}
-          {isLoading && streamingContent && (
-            <Box padding="s">
-              <div style={assistantMessageStyle}>
-                <Box padding="s">
-                  <Box variant="awsui-key-label">Assistant</Box>
-                  <Box>{streamingContent}</Box>
-                </Box>
-              </div>
-            </Box>
-          )}
-          {isLoading && !streamingContent && (
-            <Box padding="s">
-              <div style={assistantMessageStyle}>
-                <Box padding="s">
-                  <Spinner /> Thinking...
-                </Box>
-              </div>
-            </Box>
-          )}
+              </ChatBubble>
+            )}
+          </SpaceBetween>
           <div ref={messagesEndRef} />
         </div>
-        <SpaceBetween size="xs" direction="horizontal" alignItems="end">
-          <div style={{ flex: 1 }}>
-            <Textarea
-              value={input}
-              onChange={({ detail }) => setInput(detail.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message..."
-              rows={2}
-              disabled={isLoading}
-            />
-          </div>
-          <Button
-            variant="primary"
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading}
-            loading={isLoading}
-          >
-            Send
-          </Button>
-        </SpaceBetween>
+        <LiveRegion hidden>
+          {messages.length > 0 && messages[messages.length - 1].content}
+        </LiveRegion>
+        {isLoading && <LoadingBar variant="gen-ai" />}
+        <PromptInput
+          value={input}
+          onChange={({ detail }) => setInput(detail.value)}
+          onAction={handleSend}
+          placeholder="Ask a question"
+          disabled={isLoading}
+          actionButtonIconName="send"
+          actionButtonAriaLabel="Send"
+        />
       </SpaceBetween>
     </Container>
   );

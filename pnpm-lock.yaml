@@ -41,6 +41,9 @@ importers:
       '@cloudscape-design/board-components':
         specifier: 3.0.147
         version: 3.0.147(@cloudscape-design/components@3.0.1193(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+      '@cloudscape-design/chat-components':
+        specifier: ^1.0.96
+        version: 1.0.96(@cloudscape-design/components@3.0.1193(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
       '@cloudscape-design/components':
         specifier: 3.0.1193
         version: 3.0.1193(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1209,6 +1212,12 @@ packages:
 
   '@cloudscape-design/board-components@3.0.147':
     resolution: {integrity: sha512-wt1D5/QSR+FBf5ibHmYb2XKSX7AG5UV2eY/9TFLl86DpLkiS5FJdKPCDO7RhFfD4zlIvsTCqgP2bWzJYn4W9sg==}
+    peerDependencies:
+      '@cloudscape-design/components': ^3
+      react: '>=18.2.0'
+
+  '@cloudscape-design/chat-components@1.0.96':
+    resolution: {integrity: sha512-B4A+QE5+vPnx/xb24H0/hBkwOS5nqKq4HOqUUmv8CmM/TkoL5jrjvn51o5fOvUDEcJYL9agBUuAysWGvvo9RAw==}
     peerDependencies:
       '@cloudscape-design/components': ^3
       react: '>=18.2.0'
@@ -8969,6 +8978,14 @@ snapshots:
       '@cloudscape-design/components': 3.0.1193(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@cloudscape-design/test-utils-core': 1.0.71
       '@dnd-kit/utilities': 3.2.2(react@19.2.4)
+      clsx: 1.2.1
+      react: 19.2.4
+
+  '@cloudscape-design/chat-components@1.0.96(@cloudscape-design/components@3.0.1193(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@cloudscape-design/component-toolkit': 1.0.0-beta.138(react@19.2.4)
+      '@cloudscape-design/components': 3.0.1193(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@cloudscape-design/test-utils-core': 1.0.71
       clsx: 1.2.1
       react: 19.2.4
 

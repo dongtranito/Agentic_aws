@@ -9,13 +9,13 @@ import {
   Spinner,
   Link,
 } from '@cloudscape-design/components';
-import type { ICampaignOutput } from ':play-c463-z26-rzy-mar-tech/api';
+import type { ICampaignListItem } from ':play-c463-z26-rzy-mar-tech/api';
 import { useApi } from '../../hooks/useApi';
 import { useNavigate } from '@tanstack/react-router';
 import { CreateCampaignModal } from '../CreateCampaignModal';
 
 export const CampaignsList = () => {
-  const [campaigns, setCampaigns] = useState<ICampaignOutput[]>([]);
+  const [campaigns, setCampaigns] = useState<ICampaignListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -83,11 +83,22 @@ export const CampaignsList = () => {
                 id: 'id',
                 header: 'ID',
                 cell: (item) => item.id,
+                width: 350,
               },
               {
                 id: 'name',
                 header: 'Name',
                 cell: (item) => item.name,
+              },
+              {
+                id: 'createdAt',
+                header: 'Created At',
+                cell: (item) => new Date(item.createdAt).toLocaleString(),
+              },
+              {
+                id: 'updatedAt',
+                header: 'Updated At',
+                cell: (item) => new Date(item.updatedAt).toLocaleString(),
               },
               {
                 id: 'actions',

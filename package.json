@@ -19,6 +19,7 @@
     "@aws-sdk/lib-dynamodb": "^3.986.0",
     "@aws/nx-plugin": "0.72.0",
     "@cloudscape-design/board-components": "3.0.147",
+    "@cloudscape-design/chat-components": "^1.0.96",
     "@cloudscape-design/components": "3.0.1193",
     "@cloudscape-design/global-styles": "1.0.50",
     "@rolldown/binding-darwin-arm64": "1.0.0-rc.3",
