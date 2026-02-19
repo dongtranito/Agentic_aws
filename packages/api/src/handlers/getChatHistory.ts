@@ -61,7 +61,7 @@ export const handler = async (
     console.log('ListEvents response:', JSON.stringify(response, null, 2));
 
     // Transform events into chat messages
-    const messages: { role: 'user' | 'assistant'; content: string }[] = [];
+    const rawMessages: { role: 'user' | 'assistant'; content: string }[] = [];
 
     for (const event of response.events || []) {
       if (event.payload) {
@@ -82,7 +82,7 @@ export const handler = async (
                   const content = parsed.message.content?.[0]?.text || '';
 
                   if ((role === 'user' || role === 'assistant') && content) {
-                    messages.push({
+                    rawMessages.push({
                       role: role as 'user' | 'assistant',
                       content,
                     });
@@ -97,10 +97,24 @@ export const handler = async (
       }
     }
 
-    console.log('Returning messages:', messages.length);
+    console.log('Raw messages count:', rawMessages.length);
 
     // Reverse to get chronological order (oldest first)
-    messages.reverse();
+    rawMessages.reverse();
+
+    // Consolidate consecutive messages from the same role
+    const messages: { role: 'user' | 'assistant'; content: string }[] = [];
+    for (const msg of rawMessages) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg && lastMsg.role === msg.role) {
+        // Append to previous message with newline separator
+        lastMsg.content += '\n\n' + msg.content;
+      } else {
+        messages.push({ ...msg });
+      }
+    }
+
+    console.log('Consolidated messages count:', messages.length);
 
     return {
       statusCode: 200,

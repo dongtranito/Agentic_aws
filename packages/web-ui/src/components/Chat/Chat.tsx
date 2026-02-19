@@ -10,6 +10,8 @@ import {
 import ChatBubble from '@cloudscape-design/chat-components/chat-bubble';
 import Avatar from '@cloudscape-design/chat-components/avatar';
 import LoadingBar from '@cloudscape-design/chat-components/loading-bar';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useApi } from '../../hooks/useApi';
 
 interface Message {
@@ -111,8 +113,45 @@ export const Chat = ({ campaignId }: ChatProps) => {
     alignItems: 'center',
   };
 
+  const markdownStyles = `
+    .markdown-content p { margin: 0 0 0.5em 0; }
+    .markdown-content p:last-child { margin-bottom: 0; }
+    .markdown-content ul, .markdown-content ol { margin: 0.5em 0; padding-left: 1.5em; }
+    .markdown-content li { margin: 0.25em 0; }
+    .markdown-content code { 
+      background-color: rgba(0, 0, 0, 0.1); 
+      padding: 0.1em 0.3em; 
+      border-radius: 3px; 
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+    .markdown-content pre { 
+      background-color: rgba(0, 0, 0, 0.1); 
+      padding: 0.75em; 
+      border-radius: 4px; 
+      overflow-x: auto;
+      margin: 0.5em 0;
+    }
+    .markdown-content pre code { 
+      background-color: transparent; 
+      padding: 0; 
+    }
+    .markdown-content table { border-collapse: collapse; margin: 0.5em 0; }
+    .markdown-content th, .markdown-content td { 
+      border: 1px solid rgba(0, 0, 0, 0.2); 
+      padding: 0.5em; 
+    }
+    .markdown-content blockquote {
+      border-left: 3px solid rgba(0, 0, 0, 0.2);
+      margin: 0.5em 0;
+      padding-left: 1em;
+      color: rgba(0, 0, 0, 0.7);
+    }
+  `;
+
   return (
     <Container header={<Header>Chat</Header>}>
+      <style>{markdownStyles}</style>
       <SpaceBetween size="m">
         <div
           role="region"
@@ -155,7 +194,11 @@ export const Chat = ({ campaignId }: ChatProps) => {
                       />
                     }
                   >
-                    {msg.content}
+                    <div className="markdown-content">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
                   </ChatBubble>
                 ),
               )}
@@ -171,7 +214,11 @@ export const Chat = ({ campaignId }: ChatProps) => {
                     />
                   }
                 >
-                  {streamingContent}
+                  <div className="markdown-content">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {streamingContent}
+                    </ReactMarkdown>
+                  </div>
                 </ChatBubble>
               )}
               {isLoading && !streamingContent && (
