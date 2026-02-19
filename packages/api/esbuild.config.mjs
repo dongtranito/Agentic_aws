@@ -8,8 +8,10 @@ const handlers = [
   'getChatHistory',
 ];
 
-await Promise.all(
-  handlers.map((handler) =>
+const mcpHandlers = ['mcp/databricks', 'mcp/clevertap', 'mcp/talonone'];
+
+await Promise.all([
+  ...handlers.map((handler) =>
     esbuild.build({
       entryPoints: [`src/handlers/${handler}.ts`],
       bundle: true,
@@ -20,4 +22,15 @@ await Promise.all(
       external: ['@aws-sdk/*'],
     }),
   ),
-);
+  ...mcpHandlers.map((handler) =>
+    esbuild.build({
+      entryPoints: [`src/handlers/${handler}.ts`],
+      bundle: true,
+      platform: 'node',
+      target: 'node22',
+      outfile: `../../dist/packages/api/bundle/${handler}/index.js`,
+      format: 'cjs',
+      external: ['@aws-sdk/*'],
+    }),
+  ),
+]);

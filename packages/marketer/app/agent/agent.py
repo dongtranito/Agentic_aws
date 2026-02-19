@@ -1,10 +1,12 @@
 import os
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 
 from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig
 from bedrock_agentcore.memory.integrations.strands.session_manager import AgentCoreMemorySessionManager
 from strands import Agent, tool
 from strands_tools import current_time
+
+from .gateway_mcp_client import get_gateway_mcp_client, is_gateway_configured
 
 MEMORY_ID = os.environ["MEMORY_ID"]
 REGION = os.environ.get("AWS_REGION", "us-east-1")
@@ -17,7 +19,7 @@ def add(a: int, b: int) -> int:
 
 @contextmanager
 def get_agent(session_id: str, actor_id: str):
-    """Get an agent with AgentCore memory session manager."""
+    """Get an agent with AgentCore memory session manager and gateway tools."""
     agentcore_memory_config = AgentCoreMemoryConfig(
         memory_id=MEMORY_ID,
         session_id=session_id,
@@ -29,15 +31,39 @@ def get_agent(session_id: str, actor_id: str):
         region_name=REGION,
     )
 
+    # Base tools
+    tools = [add, current_time]
+
+    # If gateway is configured, get gateway tools
+    mcp_client = None
+    if is_gateway_configured():
+        try:
+            mcp_client = get_gateway_mcp_client()
+            mcp_client.__enter__()
+            gateway_tools = mcp_client.list_tools_sync()
+            tools.extend(gateway_tools)
+            print(f"Loaded {len(gateway_tools)} tools from gateway")
+        except Exception as e:
+            print(f"Warning: Failed to load gateway tools: {e}")
+
     try:
         yield Agent(
             system_prompt="""
-You are an addition wizard.
-Use the 'add' tool for addition tasks.
-Refer to tools as your 'spellbook'.
+You are a marketing assistant with access to various marketing tools.
+
+You have access to the following tool categories:
+- Databricks: For data analytics, audience segmentation, and SQL queries
+- CleverTap: For customer engagement, push notifications, and user profiles
+- TalonOne: For loyalty programs, promotions, and coupon management
+
+Use the appropriate tools to help users with their marketing tasks.
+When using tools, always explain what you're doing and interpret the results.
 """,
-            tools=[add, current_time],
+            tools=tools,
             session_manager=session_manager,
         )
     finally:
+        if mcp_client:
+            with suppress(Exception):
+                mcp_client.__exit__(None, None, None)
         session_manager.close()

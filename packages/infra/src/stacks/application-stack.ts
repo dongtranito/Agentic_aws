@@ -7,6 +7,7 @@ import { Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { APIConstruct } from '../constructs/api.js';
 import { AgentConstruct } from '../constructs/agent.js';
+import { GatewayConstruct } from '../constructs/gateway.js';
 import { StorageAndData } from '../constructs/storage-data.js';
 
 export interface ApplicationStackProps extends StackProps {
@@ -26,7 +27,10 @@ export class ApplicationStack extends Stack {
     });
 
     const storage = new StorageAndData(this, 'StorageAndData');
-    const agents = new AgentConstruct(this, 'Agents');
+    const gateway = new GatewayConstruct(this, 'Gateway');
+    const agents = new AgentConstruct(this, 'Agents', {
+      gateway: gateway.gateway,
+    });
     const api = new APIConstruct(this, 'ApiConstruct', {
       userPool: identity.userPool,
       campaignsTable: storage.campaigns,
