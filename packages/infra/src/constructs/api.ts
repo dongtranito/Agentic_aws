@@ -9,6 +9,7 @@ import * as ddb from 'aws-cdk-lib/aws-dynamodb';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as agentcore from '@aws-cdk/aws-bedrock-agentcore-alpha';
 import { Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { MarketerAgent } from ':play-c463-z26-rzy-mar-tech/common-constructs';
@@ -20,6 +21,7 @@ export interface APIConstructProps {
   readonly campaignActiveIndex: string;
   readonly sessionsBucket: s3.IBucket;
   readonly marketerAgent: MarketerAgent;
+  readonly memory: agentcore.Memory;
 }
 
 const getBundlePath = (handler: string) =>
@@ -33,8 +35,13 @@ export class APIConstruct extends Construct {
   constructor(scope: Construct, id: string, props: APIConstructProps) {
     super(scope, id);
 
-    const { userPool, campaignsTable, campaignActiveIndex, marketerAgent } =
-      props;
+    const {
+      userPool,
+      campaignsTable,
+      campaignActiveIndex,
+      marketerAgent,
+      memory,
+    } = props;
 
     // Lambda for GET /campaign/:id
     const getCampaignHandler = new lambda.Function(this, 'GetCampaignHandler', {
@@ -118,6 +125,24 @@ export class APIConstruct extends Construct {
 
     marketerAgent.agentCoreRuntime.grantInvoke(putChatHandler);
 
+    // Lambda for GET /chat/:sessionId (chat history)
+    const getChatHistoryHandler = new lambda.Function(
+      this,
+      'GetChatHistoryHandler',
+      {
+        runtime: lambda.Runtime.NODEJS_LATEST,
+        handler: 'index.handler',
+        code: lambda.Code.fromAsset(getBundlePath('getChatHistory')),
+        timeout: Duration.seconds(30),
+        tracing: lambda.Tracing.ACTIVE,
+        environment: {
+          MEMORY_ID: memory.memoryId,
+        },
+      },
+    );
+
+    memory.grantFullAccess(getChatHistoryHandler);
+
     const api = new Api(this, 'RestAPI', {
       identity: { userPool },
       getCampaign: {
@@ -137,6 +162,10 @@ export class APIConstruct extends Construct {
         integration: new apigateway.LambdaIntegration(putChatHandler, {
           responseTransferMode: apigateway.ResponseTransferMode.STREAM,
         }),
+      },
+      getChatHistory: {
+        handler: getChatHistoryHandler,
+        integration: new apigateway.LambdaIntegration(getChatHistoryHandler),
       },
     });
 

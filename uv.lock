@@ -2325,7 +2325,11 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "coverage" },
     { name = "fastapi", extra = ["standard"] },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-html" },
 ]
 
 [package.metadata]
@@ -2342,7 +2346,13 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "fastapi", extras = ["standard"], specifier = "==0.128.5" }]
+dev = [
+    { name = "coverage", specifier = ">=7.0.0" },
+    { name = "fastapi", extras = ["standard"], specifier = "==0.128.5" },
+    { name = "pytest", specifier = ">=9.0.0" },
+    { name = "pytest-cov", specifier = ">=7.0.0" },
+    { name = "pytest-html", specifier = ">=4.0.0" },
+]
 
 [[package]]
 name = "pluggy"

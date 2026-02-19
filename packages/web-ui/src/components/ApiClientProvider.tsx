@@ -3,6 +3,7 @@ import type {
   ICreateCampaignOutput,
   IGetCampaignOutput,
   IGetCampaignsOutput,
+  IGetChatHistoryOutput,
   IPutChatInput,
 } from ':play-c463-z26-rzy-mar-tech/api';
 import { createContext, FC, PropsWithChildren, useMemo } from 'react';
@@ -20,6 +21,7 @@ export interface ApiClient {
       input: IPutChatInput,
       onChunk?: (chunk: string) => void,
     ) => Promise<void>;
+    getHistory: (sessionId: string) => Promise<IGetChatHistoryOutput>;
   };
 }
 
@@ -99,6 +101,20 @@ export const ApiClientProvider: FC<PropsWithChildren> = ({ children }) => {
               onChunk(decoder.decode(value, { stream: true }));
             }
           }
+        },
+        getHistory: async (sessionId: string) => {
+          const response = await fetch(`${apiUrl}/chat/${sessionId}`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${auth.user?.id_token}`,
+            },
+          });
+          if (!response.ok) {
+            throw new Error(
+              `Failed to get chat history: ${response.statusText}`,
+            );
+          }
+          return response.json();
         },
       },
     }),

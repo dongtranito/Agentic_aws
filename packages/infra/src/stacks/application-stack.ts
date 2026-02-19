@@ -33,6 +33,7 @@ export class ApplicationStack extends Stack {
       campaignActiveIndex: storage.taskActiveIndex,
       sessionsBucket: storage.sessionsBucket,
       marketerAgent: agents.marketer,
+      memory: agents.memory,
     });
 
     const web = new WebUi(this, 'WebUi');

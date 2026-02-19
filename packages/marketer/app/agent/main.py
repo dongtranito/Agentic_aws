@@ -34,7 +34,7 @@ async def invoke(
     body = await request.body()
     data = json.loads(body)
     prompt = data.get("prompt", "")
-    actor_id = data.get("actorId")
+    actor_id = data.get("actorId", "anonymous")
 
     print(f"Received prompt: {prompt}, session_id: {x_amzn_bedrock_agentcore_runtime_session_id}, actor_id: {actor_id}")
 

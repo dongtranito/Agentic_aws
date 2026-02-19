@@ -1,6 +1,12 @@
 import * as esbuild from 'esbuild';
 
-const handlers = ['getCampaign', 'getCampaigns', 'createCampaign', 'putChat'];
+const handlers = [
+  'getCampaign',
+  'getCampaigns',
+  'createCampaign',
+  'putChat',
+  'getChatHistory',
+];
 
 await Promise.all(
   handlers.map((handler) =>

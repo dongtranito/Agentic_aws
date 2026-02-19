@@ -25,6 +25,7 @@ export const Chat = ({ campaignId }: ChatProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [streamingContent, setStreamingContent] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const streamingContentRef = useRef('');
@@ -37,6 +38,25 @@ export const Chat = ({ campaignId }: ChatProps) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, streamingContent, scrollToBottom]);
+
+  // Load chat history on mount
+  useEffect(() => {
+    const loadHistory = async () => {
+      if (!campaignId) {
+        setIsLoadingHistory(false);
+        return;
+      }
+      try {
+        const history = await api.chat.getHistory(campaignId);
+        setMessages(history.messages || []);
+      } catch (error) {
+        console.error('Failed to load chat history:', error);
+      } finally {
+        setIsLoadingHistory(false);
+      }
+    };
+    loadHistory();
+  }, [campaignId, api.chat]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -99,28 +119,49 @@ export const Chat = ({ campaignId }: ChatProps) => {
           aria-label="Chat messages"
           style={chatContainerStyle}
         >
-          <SpaceBetween size="m">
-            {messages.map((msg, idx) =>
-              msg.role === 'user' ? (
-                <div key={idx} style={userBubbleStyle}>
-                  <ChatBubble
-                    ariaLabel={`You: ${msg.content}`}
-                    type="outgoing"
-                    avatar={
+          {isLoadingHistory ? (
+            <Box textAlign="center" padding="l">
+              <LoadingBar variant="gen-ai" />
+            </Box>
+          ) : (
+            <SpaceBetween size="m">
+              {messages.map((msg, idx) =>
+                msg.role === 'user' ? (
+                  <div key={idx} style={userBubbleStyle}>
+                    <ChatBubble
+                      ariaLabel={`You: ${msg.content}`}
+                      type="outgoing"
+                      avatar={
+                        <Avatar ariaLabel="User" color="default" initials="U" />
+                      }
+                      hideAvatar
+                    >
+                      {msg.content}
+                    </ChatBubble>
+                    <div style={{ marginLeft: '8px' }}>
                       <Avatar ariaLabel="User" color="default" initials="U" />
+                    </div>
+                  </div>
+                ) : (
+                  <ChatBubble
+                    key={idx}
+                    ariaLabel={`AI Assistant: ${msg.content}`}
+                    type="incoming"
+                    avatar={
+                      <Avatar
+                        ariaLabel="AI Assistant"
+                        color="gen-ai"
+                        initials="AI"
+                      />
                     }
-                    hideAvatar
                   >
                     {msg.content}
                   </ChatBubble>
-                  <div style={{ marginLeft: '8px' }}>
-                    <Avatar ariaLabel="User" color="default" initials="U" />
-                  </div>
-                </div>
-              ) : (
+                ),
+              )}
+              {isLoading && streamingContent && (
                 <ChatBubble
-                  key={idx}
-                  ariaLabel={`AI Assistant: ${msg.content}`}
+                  ariaLabel={`AI Assistant: ${streamingContent}`}
                   type="incoming"
                   avatar={
                     <Avatar
@@ -130,44 +171,29 @@ export const Chat = ({ campaignId }: ChatProps) => {
                     />
                   }
                 >
-                  {msg.content}
+                  {streamingContent}
                 </ChatBubble>
-              ),
-            )}
-            {isLoading && streamingContent && (
-              <ChatBubble
-                ariaLabel={`AI Assistant: ${streamingContent}`}
-                type="incoming"
-                avatar={
-                  <Avatar
-                    ariaLabel="AI Assistant"
-                    color="gen-ai"
-                    initials="AI"
-                  />
-                }
-              >
-                {streamingContent}
-              </ChatBubble>
-            )}
-            {isLoading && !streamingContent && (
-              <ChatBubble
-                ariaLabel="AI Assistant is thinking"
-                type="incoming"
-                avatar={
-                  <Avatar
-                    ariaLabel="AI Assistant"
-                    color="gen-ai"
-                    initials="AI"
-                    loading
-                  />
-                }
-              >
-                <Box>
-                  <LoadingBar variant="gen-ai" />
-                </Box>
-              </ChatBubble>
-            )}
-          </SpaceBetween>
+              )}
+              {isLoading && !streamingContent && (
+                <ChatBubble
+                  ariaLabel="AI Assistant is thinking"
+                  type="incoming"
+                  avatar={
+                    <Avatar
+                      ariaLabel="AI Assistant"
+                      color="gen-ai"
+                      initials="AI"
+                      loading
+                    />
+                  }
+                >
+                  <Box>
+                    <LoadingBar variant="gen-ai" />
+                  </Box>
+                </ChatBubble>
+              )}
+            </SpaceBetween>
+          )}
           <div ref={messagesEndRef} />
         </div>
         <LiveRegion hidden>

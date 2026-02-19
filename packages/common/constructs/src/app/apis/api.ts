@@ -55,6 +55,10 @@ export interface ApiProps {
    * Lambda handler for PUT /chat (streaming)
    */
   putChat: ApiIntegration;
+  /**
+   * Lambda handler for GET /chat/:sessionId
+   */
+  getChatHistory: ApiIntegration;
 }
 
 /**
@@ -68,17 +72,25 @@ export class Api extends Construct {
   public readonly getCampaignsHandler: Function;
   public readonly createCampaignHandler: Function;
   public readonly putChatHandler: Function;
+  public readonly getChatHistoryHandler: Function;
 
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
 
-    const { identity, getCampaign, getCampaigns, createCampaign, putChat } =
-      props;
+    const {
+      identity,
+      getCampaign,
+      getCampaigns,
+      createCampaign,
+      putChat,
+      getChatHistory,
+    } = props;
 
     this.getCampaignHandler = getCampaign.handler;
     this.getCampaignsHandler = getCampaigns.handler;
     this.createCampaignHandler = createCampaign.handler;
     this.putChatHandler = putChat.handler;
+    this.getChatHistoryHandler = getChatHistory.handler;
 
     const authorizer = new CognitoUserPoolsAuthorizer(this, 'ApiAuthorizer', {
       cognitoUserPools: [identity.userPool],
@@ -131,9 +143,11 @@ export class Api extends Construct {
     const campaignIdResource = campaignResource.addResource('{id}');
     campaignIdResource.addMethod('GET', getCampaign.integration);
 
-    // PUT /chat
+    // PUT /chat, GET /chat/{sessionId}
     const chatResource = this.api.root.addResource('chat');
     chatResource.addMethod('PUT', putChat.integration);
+    const chatSessionResource = chatResource.addResource('{sessionId}');
+    chatSessionResource.addMethod('GET', getChatHistory.integration);
 
     // Register the API URL in runtime configuration
     RuntimeConfig.ensure(this).config.apis = {
@@ -162,6 +176,10 @@ export class Api extends Construct {
       allowedOrigins,
     );
     this.putChatHandler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
+    this.getChatHistoryHandler.addEnvironment(
+      'ALLOWED_ORIGINS',
+      allowedOrigins,
+    );
   }
 
   /**

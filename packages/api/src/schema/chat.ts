@@ -18,3 +18,20 @@ export const PutChatResponseSchema = z.object({
 });
 
 export type IPutChatOutput = z.TypeOf<typeof PutChatResponseSchema>;
+
+// Chat History
+
+export const ChatMessageSchema = z.object({
+  role: z.enum(['user', 'assistant']),
+  content: z.string(),
+});
+
+export type IChatMessage = z.TypeOf<typeof ChatMessageSchema>;
+
+export const GetChatHistoryResponseSchema = z.object({
+  messages: z.array(ChatMessageSchema),
+});
+
+export type IGetChatHistoryOutput = z.TypeOf<
+  typeof GetChatHistoryResponseSchema
+>;
