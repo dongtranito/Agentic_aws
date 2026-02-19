@@ -9,9 +9,9 @@ from .agent import get_agent
 from .init import app
 
 
-async def handle_invoke(prompt: str, session_id: str):
+async def handle_invoke(prompt: str, session_id: str, actor_id: str):
     """Streaming handler for agent invocation"""
-    with get_agent(session_id=session_id) as agent:
+    with get_agent(session_id=session_id, actor_id=actor_id) as agent:
         stream = agent.stream_async(prompt)
         async for event in stream:
             print(event)
@@ -34,11 +34,12 @@ async def invoke(
     body = await request.body()
     data = json.loads(body)
     prompt = data.get("prompt", "")
+    actor_id = data.get("actorId")
 
-    print(f"Received prompt: {prompt}, session_id: {x_amzn_bedrock_agentcore_runtime_session_id}")
+    print(f"Received prompt: {prompt}, session_id: {x_amzn_bedrock_agentcore_runtime_session_id}, actor_id: {actor_id}")
 
     return StreamingResponse(
-        handle_invoke(prompt, x_amzn_bedrock_agentcore_runtime_session_id),
+        handle_invoke(prompt, x_amzn_bedrock_agentcore_runtime_session_id, actor_id),
         media_type="text/event-stream",
     )
 

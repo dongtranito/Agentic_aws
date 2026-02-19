@@ -7,7 +7,7 @@ import { z } from 'zod';
 // Chat
 
 export const PutChatRequestSchema = z.object({
-  id: z.string(),
+  sessionId: z.string(),
   prompt: z.string(),
 });
 

@@ -14,6 +14,13 @@ const client = new BedrockAgentCoreClient({});
 const AGENT_RUNTIME_ARN = process.env.AGENT_RUNTIME_ARN!;
 
 /**
+ * Extract user ID (sub) from Cognito JWT token
+ */
+function extractActorId(event: APIGatewayProxyEvent): string {
+  return event.requestContext.authorizer?.claims?.sub as string;
+}
+
+/**
  * Streaming Lambda handler for PUT /chat
  * Invokes the AgentCore runtime and streams the response.
  */
@@ -39,22 +46,32 @@ export const handler = awslambda.streamifyResponse(
 
     try {
       const body = event.body ? JSON.parse(event.body) : {};
-      const { prompt, id } = body;
+      const { prompt, sessionId } = body;
+
+      if (!sessionId) {
+        responseStream.write(
+          JSON.stringify({ error: 'sessionId is required' }),
+        );
+        return;
+      }
+
+      const actorId = extractActorId(event);
 
       // runtimeSessionId must be at least 33 characters
-      const sessionId = `session-${id || crypto.randomUUID()}`;
+      const runtimeSessionId = `session-${sessionId}`;
 
-      const payload = JSON.stringify({ prompt });
+      const payload = JSON.stringify({ prompt, actorId });
 
       console.log('Invoking agent with:', {
         agentRuntimeArn: AGENT_RUNTIME_ARN,
-        sessionId,
+        sessionId: runtimeSessionId,
+        actorId,
         prompt,
       });
 
       const command = new InvokeAgentRuntimeCommand({
         agentRuntimeArn: AGENT_RUNTIME_ARN,
-        runtimeSessionId: sessionId,
+        runtimeSessionId,
         payload: new TextEncoder().encode(payload),
       });
 

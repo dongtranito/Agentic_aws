@@ -50,7 +50,7 @@ export const Chat = ({ campaignId }: ChatProps) => {
 
     try {
       await api.chat.put(
-        { id: campaignId || crypto.randomUUID(), prompt: input.trim() },
+        { sessionId: campaignId!, prompt: input.trim() },
         (chunk) => {
           streamingContentRef.current += chunk;
           setStreamingContent(streamingContentRef.current);

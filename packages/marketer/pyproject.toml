@@ -40,11 +40,12 @@ requires-python = ">=3.12"
 readme = "README.md"
 dependencies = [
   "aws-opentelemetry-distro==0.15.0",
-  "bedrock-agentcore==0.1.7",
+  "bedrock-agentcore[strands-agents]==1.3.1",
   "fastapi==0.128.5",
   "boto3==1.42.44",
   "mcp==1.26.0",
-  "strands-agents==1.25.0",
+  "strands-agents==1.26.0",
+  "strands-agents-evals==0.1.6",
   "strands-agents-tools==0.2.20",
   "uvicorn==0.40.0"
 ]

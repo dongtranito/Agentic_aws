@@ -4,13 +4,21 @@
  */
 import { MarketerAgent } from ':play-c463-z26-rzy-mar-tech/common-constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as agentcore from '@aws-cdk/aws-bedrock-agentcore-alpha';
 import { Construct } from 'constructs';
 
 export class AgentConstruct extends Construct {
   readonly marketer: MarketerAgent;
+  readonly memory: agentcore.Memory;
 
   constructor(scope: Construct, id: string) {
     super(scope, id);
+
+    // Create AgentCore Memory for short-term memory
+    this.memory = new agentcore.Memory(this, 'MarketerMemory', {
+      memoryName: 'marketer_memory',
+      description: 'Short-term memory for the marketer agent',
+    });
 
     const executionRole = new iam.Role(this, 'MarketerRole', {
       assumedBy: new iam.ServicePrincipal('bedrock-agentcore.amazonaws.com'),
@@ -32,8 +40,14 @@ export class AgentConstruct extends Construct {
       },
     });
 
+    // Grant the execution role access to memory
+    this.memory.grantFullAccess(executionRole);
+
     const marketer = new MarketerAgent(this, 'Marketer', {
       executionRole,
+      environmentVariables: {
+        MEMORY_ID: this.memory.memoryId,
+      },
     });
 
     this.marketer = marketer;
