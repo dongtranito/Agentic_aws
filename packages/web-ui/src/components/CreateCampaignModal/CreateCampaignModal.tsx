@@ -51,6 +51,12 @@ export const CreateCampaignModal = ({
     onDismiss();
   };
 
+  const handleKeyDown = (event: CustomEvent<{ key: string }>) => {
+    if (event.detail.key === 'Enter' && name.trim() && !loading) {
+      handleSubmit();
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -79,6 +85,7 @@ export const CreateCampaignModal = ({
           <Input
             value={name}
             onChange={({ detail }) => setName(detail.value)}
+            onKeyDown={handleKeyDown}
             placeholder="Enter campaign name"
             disabled={loading}
           />

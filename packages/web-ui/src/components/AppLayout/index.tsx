@@ -155,6 +155,7 @@ const AppLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
       />
       <CloudscapeAppLayout
         ref={appLayout}
+        maxContentWidth={1800}
         breadcrumbs={
           <BreadcrumbGroup onFollow={onNavigate} items={activeBreadcrumbs} />
         }
