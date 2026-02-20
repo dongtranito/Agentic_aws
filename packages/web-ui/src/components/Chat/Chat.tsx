@@ -6,6 +6,7 @@ import {
   Header,
   LiveRegion,
   PromptInput,
+  Spinner,
 } from '@cloudscape-design/components';
 import ChatBubble from '@cloudscape-design/chat-components/chat-bubble';
 import Avatar from '@cloudscape-design/chat-components/avatar';
@@ -160,7 +161,7 @@ export const Chat = ({ campaignId }: ChatProps) => {
         >
           {isLoadingHistory ? (
             <Box textAlign="center" padding="l">
-              <LoadingBar variant="gen-ai" />
+              <Spinner size="large" />
             </Box>
           ) : (
             <SpaceBetween size="m">
@@ -251,8 +252,8 @@ export const Chat = ({ campaignId }: ChatProps) => {
           value={input}
           onChange={({ detail }) => setInput(detail.value)}
           onAction={handleSend}
-          placeholder="Ask a question"
-          disabled={isLoading}
+          placeholder={isLoadingHistory ? 'Loading...' : 'Ask a question'}
+          disabled={isLoading || isLoadingHistory}
           actionButtonIconName="send"
           actionButtonAriaLabel="Send"
         />

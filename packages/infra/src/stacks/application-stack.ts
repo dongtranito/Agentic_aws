@@ -30,6 +30,7 @@ export class ApplicationStack extends Stack {
     const gateway = new GatewayConstruct(this, 'Gateway');
     const agents = new AgentConstruct(this, 'Agents', {
       gateway: gateway.gateway,
+      sessionsBucket: storage.sessionsBucket,
     });
     const api = new APIConstruct(this, 'ApiConstruct', {
       userPool: identity.userPool,

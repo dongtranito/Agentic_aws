@@ -16,7 +16,7 @@ from mcp.client.streamable_http import streamablehttp_client
 from strands.tools.mcp.mcp_client import MCPClient
 
 # Gateway configuration from environment
-GATEWAY_URL = os.environ.get("GATEWAY_URL", "")
+GATEWAY_URL = os.environ["GATEWAY_URL"]
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 
 
@@ -52,9 +52,6 @@ class SigV4HTTPXAuth(httpx.Auth):
 
 def get_gateway_mcp_client() -> MCPClient:
     """Returns an MCP Client configured for AgentCore Gateway with IAM auth."""
-    if not GATEWAY_URL:
-        raise ValueError("GATEWAY_URL environment variable is not set")
-
     # Get credentials from the default credential chain (IAM role)
     session = boto3.Session()
     credentials = session.get_credentials().get_frozen_credentials()
@@ -66,8 +63,3 @@ def get_gateway_mcp_client() -> MCPClient:
             timeout=120,
         )
     )
-
-
-def is_gateway_configured() -> bool:
-    """Check if gateway is configured."""
-    return bool(GATEWAY_URL)

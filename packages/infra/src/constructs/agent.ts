@@ -4,11 +4,13 @@
  */
 import { MarketerAgent } from ':play-c463-z26-rzy-mar-tech/common-constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as agentcore from '@aws-cdk/aws-bedrock-agentcore-alpha';
 import { Construct } from 'constructs';
 
 export interface AgentConstructProps {
   gateway: agentcore.Gateway;
+  sessionsBucket: s3.IBucket;
 }
 
 export class AgentConstruct extends Construct {
@@ -18,7 +20,7 @@ export class AgentConstruct extends Construct {
   constructor(scope: Construct, id: string, props: AgentConstructProps) {
     super(scope, id);
 
-    const { gateway } = props;
+    const { gateway, sessionsBucket } = props;
 
     // Create AgentCore Memory for short-term memory
     this.memory = new agentcore.Memory(this, 'MarketerMemory', {
@@ -52,11 +54,15 @@ export class AgentConstruct extends Construct {
     // Grant the execution role access to invoke the gateway
     gateway.grantInvoke(executionRole);
 
+    // Grant the execution role access to the sessions bucket for artifacts
+    sessionsBucket.grantReadWrite(executionRole);
+
     const marketer = new MarketerAgent(this, 'Marketer', {
       executionRole,
       environmentVariables: {
         MEMORY_ID: this.memory.memoryId,
         GATEWAY_URL: gateway.gatewayUrl ?? '',
+        ARTIFACT_BUCKET: sessionsBucket.bucketName,
       },
     });
 

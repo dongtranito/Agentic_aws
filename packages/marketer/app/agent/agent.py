@@ -6,7 +6,8 @@ from bedrock_agentcore.memory.integrations.strands.session_manager import AgentC
 from strands import Agent, tool
 from strands_tools import current_time
 
-from .gateway_mcp_client import get_gateway_mcp_client, is_gateway_configured
+from .gateway_mcp_client import get_gateway_mcp_client
+from .hooks import S3ArtifactHook
 
 MEMORY_ID = os.environ["MEMORY_ID"]
 REGION = os.environ.get("AWS_REGION", "us-east-1")
@@ -34,20 +35,15 @@ def get_agent(session_id: str, actor_id: str):
     # Base tools
     tools = [add, current_time]
 
-    # If gateway is configured, get gateway tools
-    mcp_client = None
-    if is_gateway_configured():
-        try:
-            mcp_client = get_gateway_mcp_client()
-            mcp_client.__enter__()
-            gateway_tools = mcp_client.list_tools_sync()
-            tools.extend(gateway_tools)
-            print(f"Loaded {len(gateway_tools)} tools from gateway")
-        except Exception as e:
-            print(f"Warning: Failed to load gateway tools: {e}")
+    # Get gateway tools
+    mcp_client = get_gateway_mcp_client()
+    mcp_client.__enter__()
+    gateway_tools = mcp_client.list_tools_sync()
+    tools.extend(gateway_tools)
+    print(f"Loaded {len(gateway_tools)} tools from gateway")
 
     try:
-        yield Agent(
+        agent = Agent(
             system_prompt="""
 You are a marketing assistant with access to various marketing tools.
 
@@ -62,8 +58,13 @@ When using tools, always explain what you're doing and interpret the results.
             tools=tools,
             session_manager=session_manager,
         )
+
+        # Register S3 artifact hook
+        s3_hook = S3ArtifactHook(session_id=session_id, actor_id=actor_id)
+        s3_hook.register(agent.hooks)
+
+        yield agent
     finally:
-        if mcp_client:
-            with suppress(Exception):
-                mcp_client.__exit__(None, None, None)
+        with suppress(Exception):
+            mcp_client.__exit__(None, None, None)
         session_manager.close()
