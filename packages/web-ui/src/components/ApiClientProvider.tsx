@@ -2,6 +2,7 @@ import type {
   ICreateCampaignInput,
   ICreateCampaignOutput,
   IGetCampaignOutput,
+  IGetCampaignsInput,
   IGetCampaignsOutput,
   IGetChatHistoryOutput,
   IPutChatInput,
@@ -13,7 +14,7 @@ import { useRuntimeConfig } from '../hooks/useRuntimeConfig';
 export interface ApiClient {
   campaign: {
     get: (id: string) => Promise<IGetCampaignOutput>;
-    list: () => Promise<IGetCampaignsOutput>;
+    list: (input?: IGetCampaignsInput) => Promise<IGetCampaignsOutput>;
     create: (input: ICreateCampaignInput) => Promise<ICreateCampaignOutput>;
   };
   chat: {
@@ -47,8 +48,15 @@ export const ApiClientProvider: FC<PropsWithChildren> = ({ children }) => {
           }
           return response.json();
         },
-        list: async () => {
-          const response = await fetch(`${apiUrl}/campaign`, {
+        list: async (input?: IGetCampaignsInput) => {
+          const params = new URLSearchParams();
+          if (input?.pageSize) params.set('pageSize', String(input.pageSize));
+          if (input?.nextToken) params.set('nextToken', input.nextToken);
+          const queryString = params.toString();
+          const url = queryString
+            ? `${apiUrl}/campaign?${queryString}`
+            : `${apiUrl}/campaign`;
+          const response = await fetch(url, {
             method: 'GET',
             headers: {
               Authorization: `Bearer ${auth.user?.id_token}`,

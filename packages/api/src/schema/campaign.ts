@@ -30,6 +30,13 @@ export type IGetCampaignOutput = z.TypeOf<typeof GetCampaignOutputSchema>;
 
 // Get campaigns (list)
 
+export const GetCampaignsInputSchema = z.object({
+  pageSize: z.coerce.number().int().min(1).max(100).optional().default(10),
+  nextToken: z.string().optional(),
+});
+
+export type IGetCampaignsInput = z.TypeOf<typeof GetCampaignsInputSchema>;
+
 export const CampaignListItemSchema = CampaignOutput.extend({
   createdAt: unixtime,
   updatedAt: unixtime,
@@ -39,6 +46,7 @@ export type ICampaignListItem = z.TypeOf<typeof CampaignListItemSchema>;
 
 export const GetCampaignsOutputSchema = z.object({
   campaigns: z.array(CampaignListItemSchema),
+  nextToken: z.string().optional(),
 });
 
 export type IGetCampaignsOutput = z.TypeOf<typeof GetCampaignsOutputSchema>;
