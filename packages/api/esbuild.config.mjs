@@ -1,6 +1,6 @@
 import * as esbuild from 'esbuild';
 
-const handlers = [
+const apiHandlers = [
   'getCampaign',
   'getCampaigns',
   'createCampaign',
@@ -8,27 +8,27 @@ const handlers = [
   'getChatHistory',
 ];
 
-const mcpHandlers = ['mcp/databricks', 'mcp/clevertap', 'mcp/talonone'];
+const mcpHandlers = ['databricks', 'clevertap', 'talonone'];
 
 await Promise.all([
-  ...handlers.map((handler) =>
+  ...apiHandlers.map((handler) =>
     esbuild.build({
-      entryPoints: [`src/handlers/${handler}.ts`],
+      entryPoints: [`src/handlers/api/${handler}.ts`],
       bundle: true,
       platform: 'node',
       target: 'node22',
-      outfile: `../../dist/packages/api/bundle/${handler}/index.js`,
+      outfile: `../../dist/packages/api/bundle/api/${handler}/index.js`,
       format: 'cjs',
       external: ['@aws-sdk/*'],
     }),
   ),
   ...mcpHandlers.map((handler) =>
     esbuild.build({
-      entryPoints: [`src/handlers/${handler}.ts`],
+      entryPoints: [`src/handlers/mcp/${handler}.ts`],
       bundle: true,
       platform: 'node',
       target: 'node22',
-      outfile: `../../dist/packages/api/bundle/${handler}/index.js`,
+      outfile: `../../dist/packages/api/bundle/mcp/${handler}/index.js`,
       format: 'cjs',
       external: ['@aws-sdk/*'],
     }),

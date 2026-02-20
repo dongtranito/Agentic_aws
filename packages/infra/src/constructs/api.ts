@@ -26,7 +26,10 @@ export interface APIConstructProps {
 
 const getBundlePath = (handler: string) =>
   url.fileURLToPath(
-    new URL(`../../../../dist/packages/api/bundle/${handler}`, import.meta.url),
+    new URL(
+      `../../../../dist/packages/api/bundle/api/${handler}`,
+      import.meta.url,
+    ),
   );
 
 export class APIConstruct extends Construct {

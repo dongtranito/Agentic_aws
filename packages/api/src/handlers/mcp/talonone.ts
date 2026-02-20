@@ -1,25 +1,9 @@
 /**
  * TalonOne MCP Server Lambda Handler
  * Provides mock data for TalonOne loyalty and promotions operations
- *
- * Gateway passes tool arguments as the event object.
- * Tool name is in context.clientContext.custom.bedrockAgentCoreToolName
  */
 
-interface GatewayClientContext {
-  custom?: {
-    bedrockAgentCoreToolName?: string;
-    bedrockAgentCoreMessageVersion?: string;
-    bedrockAgentCoreAwsRequestId?: string;
-    bedrockAgentCoreMcpMessageId?: string;
-    bedrockAgentCoreGatewayId?: string;
-    bedrockAgentCoreTargetId?: string;
-  };
-}
-
-interface GatewayContext {
-  clientContext?: GatewayClientContext;
-}
+import { GatewayContext, extractToolName } from './utils/index.js';
 
 // Mock data for TalonOne
 const mockCampaign = {
@@ -141,15 +125,6 @@ const mockCoupons = [
     expires: '2026-04-15',
   },
 ];
-
-function extractToolName(fullToolName: string): string {
-  // Tool name format: ${target_name}__${tool_name}
-  const delimiter = '__';
-  const idx = fullToolName.indexOf(delimiter);
-  return idx >= 0
-    ? fullToolName.substring(idx + delimiter.length)
-    : fullToolName;
-}
 
 function handleToolCall(
   toolName: string,
