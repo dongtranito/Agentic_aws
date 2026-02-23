@@ -1,117 +1,145 @@
 /**
  * Databricks MCP Server Lambda Handler
- * Provides mock data for Databricks operations
+ * Implements real Databricks API calls via SQL Statement Execution,
+ * SQL Warehouses, Unity Catalog, and Jobs APIs.
  */
 
-import { GatewayContext, extractToolName } from './utils/index.js';
+import { GatewayContext, extractToolName, getSecret } from './utils/index.js';
 
-// Mock data for Databricks
-const mockCampaignPerformance = {
-  campaign_id: 'camp_001',
-  impressions: 125000,
-  clicks: 4500,
-  conversions: 320,
-  spend: 2500.0,
-  ctr: 3.6,
-  conversion_rate: 7.1,
-  roas: 4.2,
-};
+const DATABRICKS_SECRET_ARN = process.env.DATABRICKS_SECRET_ARN ?? '';
 
-const mockAudienceSegments = [
-  {
-    segment_id: 'seg_001',
-    name: 'High Value Customers',
-    size: 15000,
-    avg_ltv: 450,
-  },
-  {
-    segment_id: 'seg_002',
-    name: 'Recent Purchasers',
-    size: 8500,
-    avg_ltv: 280,
-  },
-  { segment_id: 'seg_003', name: 'Cart Abandoners', size: 12000, avg_ltv: 150 },
-  {
-    segment_id: 'seg_004',
-    name: 'Newsletter Subscribers',
-    size: 45000,
-    avg_ltv: 120,
-  },
-];
-
-const mockSqlQueryResult = {
-  columns: ['date', 'channel', 'revenue', 'orders'],
-  rows: [
-    ['2026-02-15', 'email', 12500, 85],
-    ['2026-02-15', 'social', 8200, 62],
-    ['2026-02-15', 'search', 15800, 110],
-    ['2026-02-16', 'email', 11200, 78],
-    ['2026-02-16', 'social', 9100, 71],
-    ['2026-02-16', 'search', 14500, 98],
-  ],
-};
-
-function handleToolCall(
-  toolName: string,
-  args: Record<string, unknown>,
-): unknown {
-  console.log(`Handling tool: ${toolName} with args:`, JSON.stringify(args));
-
-  switch (toolName) {
-    case 'databricks_get_campaign_performance':
-      return {
-        status: 'success',
-        data: {
-          ...mockCampaignPerformance,
-          campaign_id: args.campaign_id || mockCampaignPerformance.campaign_id,
-        },
-      };
-
-    case 'databricks_list_audience_segments':
-      return {
-        status: 'success',
-        data: {
-          segments: mockAudienceSegments,
-          total_count: mockAudienceSegments.length,
-        },
-      };
-
-    case 'databricks_run_sql_query':
-      return {
-        status: 'success',
-        data: {
-          query: args.query,
-          result: mockSqlQueryResult,
-          execution_time_ms: 245,
-        },
-      };
-
-    case 'databricks_get_customer_insights':
-      return {
-        status: 'success',
-        data: {
-          customer_id: args.customer_id || 'cust_12345',
-          total_orders: 12,
-          total_spend: 1850.0,
-          avg_order_value: 154.17,
-          first_purchase: '2024-03-15',
-          last_purchase: '2026-02-10',
-          preferred_channel: 'email',
-          segment: 'High Value Customers',
-        },
-      };
-
-    default:
-      return { error: `Unknown tool: ${toolName}` };
-  }
+interface DatabricksCredentials {
+  url: string;
+  token: string;
 }
+
+async function databricksApi(
+  method: string,
+  path: string,
+  body?: unknown,
+): Promise<unknown> {
+  const { url, token } = await getSecret<DatabricksCredentials>(
+    DATABRICKS_SECRET_ARN,
+  );
+  const baseUrl = url.replace(/\/$/, '');
+
+  const options: RequestInit = {
+    method,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  };
+
+  if (body && (method === 'POST' || method === 'PUT')) {
+    options.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(`${baseUrl}${path}`, options);
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Databricks API error (${response.status}): ${errorText}`);
+  }
+
+  return response.json();
+}
+
+// --- SQL Statement Execution API ---
+
+async function executeSql(args: Record<string, unknown>): Promise<unknown> {
+  const { query, warehouse_id, catalog, schema, row_limit, wait_timeout } =
+    args;
+
+  const body: Record<string, unknown> = {
+    statement: query,
+    warehouse_id,
+  };
+  if (catalog) body.catalog = catalog;
+  if (schema) body.schema = schema;
+  if (row_limit) body.row_limit = row_limit;
+  if (wait_timeout) body.wait_timeout = wait_timeout;
+
+  return databricksApi('POST', '/api/2.0/sql/statements', body);
+}
+
+async function getStatementResult(
+  args: Record<string, unknown>,
+): Promise<unknown> {
+  const { statement_id } = args;
+  return databricksApi('GET', `/api/2.0/sql/statements/${statement_id}`);
+}
+
+// --- SQL Warehouses API ---
+
+async function listWarehouses(): Promise<unknown> {
+  return databricksApi('GET', '/api/2.0/sql/warehouses');
+}
+
+// --- Unity Catalog APIs ---
+
+async function listSchemas(args: Record<string, unknown>): Promise<unknown> {
+  const { catalog_name } = args;
+  return databricksApi(
+    'GET',
+    `/api/2.1/unity-catalog/schemas?catalog_name=${encodeURIComponent(catalog_name as string)}`,
+  );
+}
+
+async function listTables(args: Record<string, unknown>): Promise<unknown> {
+  const { catalog_name, schema_name } = args;
+  return databricksApi(
+    'GET',
+    `/api/2.1/unity-catalog/tables?catalog_name=${encodeURIComponent(catalog_name as string)}&schema_name=${encodeURIComponent(schema_name as string)}`,
+  );
+}
+
+async function getTable(args: Record<string, unknown>): Promise<unknown> {
+  const { full_name } = args;
+  return databricksApi(
+    'GET',
+    `/api/2.1/unity-catalog/tables/${encodeURIComponent(full_name as string)}`,
+  );
+}
+
+// --- Jobs API ---
+
+async function runJob(args: Record<string, unknown>): Promise<unknown> {
+  const { job_id, notebook_params, jar_params, python_params } = args;
+
+  const body: Record<string, unknown> = { job_id };
+  if (notebook_params) body.notebook_params = notebook_params;
+  if (jar_params) body.jar_params = jar_params;
+  if (python_params) body.python_params = python_params;
+
+  return databricksApi('POST', '/api/2.1/jobs/run-now', body);
+}
+
+async function getJobRun(args: Record<string, unknown>): Promise<unknown> {
+  const { run_id } = args;
+  return databricksApi('GET', `/api/2.1/jobs/runs/get?run_id=${run_id}`);
+}
+
+// --- Tool registry ---
+
+type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
+
+const toolRegistry: Record<string, ToolHandler> = {
+  databricks_execute_sql: executeSql,
+  databricks_get_statement_result: getStatementResult,
+  databricks_list_warehouses: () => listWarehouses(),
+  databricks_list_schemas: listSchemas,
+  databricks_list_tables: listTables,
+  databricks_get_table: getTable,
+  databricks_run_job: runJob,
+  databricks_get_job_run: getJobRun,
+};
 
 export const handler = async (
   event: Record<string, unknown>,
   context: GatewayContext,
 ): Promise<unknown> => {
   try {
-    // Get tool name from context
     const fullToolName =
       context.clientContext?.custom?.bedrockAgentCoreToolName || '';
     const toolName = extractToolName(fullToolName);
@@ -120,15 +148,18 @@ export const handler = async (
       fullToolName,
       toolName,
       event,
-      contextCustom: context.clientContext?.custom,
     });
 
-    // Event contains the tool arguments directly
-    const result = handleToolCall(toolName, event);
+    const toolHandler = toolRegistry[toolName];
+    if (!toolHandler) {
+      return { error: `Unknown tool: ${toolName}` };
+    }
 
-    return result;
+    return await toolHandler(event);
   } catch (err) {
     console.error('Databricks MCP error:', err);
-    return { error: 'Internal server error' };
+    return {
+      error: err instanceof Error ? err.message : 'Internal server error',
+    };
   }
 };
