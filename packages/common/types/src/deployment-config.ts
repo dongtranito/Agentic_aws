@@ -9,8 +9,17 @@ export const AdminUserSchema = z.object({
   username: z.string(),
 });
 
+export const McpConfigSchema = z.object({
+  databricks: z.object({
+    token: z.string(),
+    url: z.string(),
+  }),
+});
+
 export const DeploymentConfigSchema = z.object({
   adminUser: AdminUserSchema,
+  mcp: McpConfigSchema,
 });
 export type IAdminUser = z.infer<typeof AdminUserSchema>;
+export type IMcpConfig = z.infer<typeof McpConfigSchema>;
 export type IDeploymentConfig = z.infer<typeof DeploymentConfigSchema>;

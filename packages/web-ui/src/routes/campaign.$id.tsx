@@ -84,11 +84,10 @@ function CampaignDetailPage() {
     >
       <Grid
         gridDefinition={[
-          { colspan: { default: 12, m: 4 } },
           { colspan: { default: 12, m: 8 } },
+          { colspan: { default: 12, m: 4 } },
         ]}
       >
-        <Chat campaignId={id} />
         <Container header={<Header>Campaign Details</Header>}>
           <SpaceBetween size="l">
             <KeyValuePairs
@@ -108,6 +107,7 @@ function CampaignDetailPage() {
             />
           </SpaceBetween>
         </Container>
+        <Chat campaignId={id} />
       </Grid>
     </ContentLayout>
   );

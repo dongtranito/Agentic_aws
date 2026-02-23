@@ -27,7 +27,9 @@ export class ApplicationStack extends Stack {
     });
 
     const storage = new StorageAndData(this, 'StorageAndData');
-    const gateway = new GatewayConstruct(this, 'Gateway');
+    const gateway = new GatewayConstruct(this, 'Gateway', {
+      mcpConfig: deploymentConfig.mcp,
+    });
     const agents = new AgentConstruct(this, 'Agents', {
       gateway: gateway.gateway,
       sessionsBucket: storage.sessionsBucket,
