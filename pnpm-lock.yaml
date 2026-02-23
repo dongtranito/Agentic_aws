@@ -47,6 +47,9 @@ importers:
       '@cloudscape-design/chat-components':
         specifier: ^1.0.96
         version: 1.0.96(@cloudscape-design/components@3.0.1193(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+      '@cloudscape-design/code-view':
+        specifier: ^3.0.102
+        version: 3.0.102(@cloudscape-design/components@3.0.1193(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
       '@cloudscape-design/components':
         specifier: 3.0.1193
         version: 3.0.1193(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1304,6 +1307,12 @@ packages:
 
   '@cloudscape-design/chat-components@1.0.96':
     resolution: {integrity: sha512-B4A+QE5+vPnx/xb24H0/hBkwOS5nqKq4HOqUUmv8CmM/TkoL5jrjvn51o5fOvUDEcJYL9agBUuAysWGvvo9RAw==}
+    peerDependencies:
+      '@cloudscape-design/components': ^3
+      react: '>=18.2.0'
+
+  '@cloudscape-design/code-view@3.0.102':
+    resolution: {integrity: sha512-YrcQO+dO0yh2lWdz98i8XnBVpRYxeDioxZzQhimGt9Dh9wr0bfcCqHdQrgRCF6WS7ZuCJC6Ye/Q2mtNGB7TlBw==}
     peerDependencies:
       '@cloudscape-design/components': ^3
       react: '>=18.2.0'
@@ -3564,6 +3573,10 @@ packages:
 
   ace-builds@1.43.6:
     resolution: {integrity: sha512-L1ddibQ7F3vyXR2k2fg+I8TQTPWVA6CKeDQr/h2+8CeyTp3W6EQL8xNFZRTztuP8xNOAqL3IYPqdzs31GCjDvg==}
+
+  ace-code@1.43.6:
+    resolution: {integrity: sha512-yFkGfSm4h+hxUeUn/6aGbl8QFfwRjcA/iCg6qqmgJpb2ry6ZHWjXvm/MKhI/zRXQAFmeFxPZ8UbT/Ux56Vjlzw==}
+    engines: {node: '>= 0.6.0'}
 
   acorn-import-phases@1.0.4:
     resolution: {integrity: sha512-wKmbr/DDiIXzEOiWrTTUcDm24kQ2vGfZQvM2fwg2vXqR5uW6aapr7ObPtj1th32b9u90/Pf4AItvdTh42fBmVQ==}
@@ -9702,6 +9715,14 @@ snapshots:
       clsx: 1.2.1
       react: 19.2.4
 
+  '@cloudscape-design/code-view@3.0.102(@cloudscape-design/components@3.0.1193(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@cloudscape-design/component-toolkit': 1.0.0-beta.138(react@19.2.4)
+      '@cloudscape-design/components': 3.0.1193(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      ace-code: 1.43.6
+      clsx: 1.2.1
+      react: 19.2.4
+
   '@cloudscape-design/collection-hooks@1.0.82(react@19.2.4)':
     dependencies:
       '@cloudscape-design/component-toolkit': 1.0.0-beta.138(react@19.2.4)
@@ -12530,6 +12551,8 @@ snapshots:
       negotiator: 1.0.0
 
   ace-builds@1.43.6: {}
+
+  ace-code@1.43.6: {}
 
   acorn-import-phases@1.0.4(acorn@8.15.0):
     dependencies:

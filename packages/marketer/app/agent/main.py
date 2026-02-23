@@ -10,16 +10,101 @@ from .init import app
 
 
 async def handle_invoke(prompt: str, session_id: str, actor_id: str):
-    """Streaming handler for agent invocation"""
+    """Streaming handler for agent invocation.
+
+    Yields SSE-formatted events:
+      - data: {"type":"text","content":"..."} for text chunks
+      - data: {"type":"tool_use","name":"...","input":{...}} when a tool starts
+      - data: {"type":"tool_result","name":"...","output":"..."} when a tool completes
+    """
     with get_agent(session_id=session_id, actor_id=actor_id) as agent:
+        pending_tool: dict | None = None
         stream = agent.stream_async(prompt)
+
+        def flush_pending_tool():
+            """Emit the pending tool_use event with accumulated input."""
+            nonlocal pending_tool
+            if pending_tool is None:
+                return None
+            evt = json.dumps(pending_tool)
+            pending_tool = None
+            return f"data: {evt}\n\n"
+
         async for event in stream:
             print(event)
-            content = event.get("event", {}).get("contentBlockDelta", {}).get("delta", {}).get("text")
+
+            # Tool use start/update — accumulate input, don't emit yet
+            tool_use = event.get("current_tool_use")
+            if tool_use and tool_use.get("name"):
+                raw_name = tool_use["name"]
+                tool_name = raw_name.split("___", 1)[-1] if "___" in raw_name else raw_name
+
+                if pending_tool and pending_tool["name"] != tool_name:
+                    # Different tool — flush the previous one
+                    flushed = flush_pending_tool()
+                    if flushed:
+                        yield flushed
+
+                # Update pending tool with latest accumulated input
+                raw_input = tool_use.get("input", {})
+                if isinstance(raw_input, str):
+                    try:
+                        raw_input = json.loads(raw_input)
+                    except (json.JSONDecodeError, TypeError):
+                        raw_input = {"raw": raw_input}
+                pending_tool = {
+                    "type": "tool_use",
+                    "name": tool_name,
+                    "input": raw_input,
+                }
+                continue
+
+            # Any non-tool event: flush pending tool first
+            flushed = flush_pending_tool()
+            if flushed:
+                yield flushed
+
+            # Complete message — check for tool results
+            msg = event.get("message")
+            if msg and msg.get("role") == "user":
+                for block in msg.get("content", []):
+                    if "toolResult" in block:
+                        tr = block["toolResult"]
+                        # Resolve tool name from toolUseId
+                        tool_name = "unknown"
+                        raw_tool_name = ""
+                        for b in msg.get("content", []):
+                            tu = b.get("toolUse")
+                            if tu and tu.get("toolUseId") == tr.get("toolUseId"):
+                                raw_tool_name = tu.get("name", "")
+                                break
+                        if raw_tool_name:
+                            tool_name = raw_tool_name.split("___", 1)[-1] if "___" in raw_tool_name else raw_tool_name
+                        output = ""
+                        for c in tr.get("content", []):
+                            if "text" in c:
+                                output += c["text"]
+                        evt = json.dumps(
+                            {
+                                "type": "tool_result",
+                                "name": tool_name,
+                                "status": tr.get("status", "success"),
+                                "output": output,
+                            }
+                        )
+                        yield f"data: {evt}\n\n"
+                continue
+
+            # Text content
+            content = event.get("data")
             if content is not None:
-                yield content
-            elif event.get("event", {}).get("messageStop") is not None:
-                yield "\n"
+                evt = json.dumps({"type": "text", "content": content})
+                yield f"data: {evt}\n\n"
+                continue
+
+            # Message stop
+            if event.get("event", {}).get("messageStop") is not None:
+                pass
 
 
 @app.post("/invocations", openapi_extra={"x-streaming": True}, response_class=PlainTextResponse)

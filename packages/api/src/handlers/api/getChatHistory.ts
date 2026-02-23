@@ -61,7 +61,11 @@ export const handler = async (
     console.log('ListEvents response:', JSON.stringify(response, null, 2));
 
     // Transform events into chat messages
-    const rawMessages: { role: 'user' | 'assistant'; content: string }[] = [];
+    const rawMessages: {
+      role: 'user' | 'assistant';
+      content: string;
+      blocks?: { type: string; [key: string]: unknown }[];
+    }[] = [];
 
     for (const event of response.events || []) {
       if (event.payload) {
@@ -73,23 +77,82 @@ export const handler = async (
               content?: { text?: string };
             };
 
-            // The content.text contains a JSON string with the actual message
             if (conv.content?.text) {
               try {
                 const parsed = JSON.parse(conv.content.text);
                 if (parsed.message) {
                   const role = parsed.message.role?.toLowerCase();
-                  const content = parsed.message.content?.[0]?.text || '';
+                  const contentBlocks = parsed.message.content || [];
 
-                  if ((role === 'user' || role === 'assistant') && content) {
-                    rawMessages.push({
-                      role: role as 'user' | 'assistant',
-                      content,
-                    });
+                  if (role === 'user' || role === 'assistant') {
+                    const textParts: string[] = [];
+                    const blocks: { type: string; [key: string]: unknown }[] =
+                      [];
+
+                    for (const block of contentBlocks) {
+                      if (block.text) {
+                        textParts.push(block.text);
+                        blocks.push({ type: 'text', content: block.text });
+                      } else if (block.toolUse) {
+                        const rawName = block.toolUse.name || 'unknown';
+                        // Strip gateway prefix (target___toolname)
+                        const delimIdx = rawName.indexOf('___');
+                        const toolName =
+                          delimIdx >= 0
+                            ? rawName.substring(delimIdx + 3)
+                            : rawName;
+                        blocks.push({
+                          type: 'tool_use',
+                          name: toolName,
+                          input: block.toolUse.input || {},
+                        });
+                      } else if (block.toolResult) {
+                        const output =
+                          block.toolResult.content
+                            ?.map((c: { text?: string }) => c.text || '')
+                            .join('') || '';
+                        // Find the matching tool_use name by toolUseId
+                        const toolUseId = block.toolResult.toolUseId;
+                        let toolName = 'tool';
+                        if (toolUseId) {
+                          for (const b of contentBlocks) {
+                            if (
+                              b.toolUse?.toolUseId === toolUseId &&
+                              b.toolUse?.name
+                            ) {
+                              const raw = b.toolUse.name;
+                              const idx = raw.indexOf('___');
+                              toolName =
+                                idx >= 0 ? raw.substring(idx + 3) : raw;
+                              break;
+                            }
+                          }
+                        }
+                        blocks.push({
+                          type: 'tool_result',
+                          name: toolName,
+                          status: block.toolResult.status || 'success',
+                          output,
+                        });
+                      }
+                    }
+
+                    const content = textParts.join('\n');
+                    if (content || blocks.length > 0) {
+                      rawMessages.push({
+                        role: role as 'user' | 'assistant',
+                        content,
+                        blocks: blocks.length > 0 ? blocks : undefined,
+                      });
+                    }
                   }
                 }
-              } catch {
-                // Skip if JSON parsing fails
+              } catch (e) {
+                console.warn(
+                  'Failed to parse event payload:',
+                  e,
+                  conv.content?.text,
+                );
               }
             }
           }
@@ -102,14 +165,38 @@ export const handler = async (
     // Reverse to get chronological order (oldest first)
     rawMessages.reverse();
 
-    // Consolidate consecutive messages from the same role
-    const messages: { role: 'user' | 'assistant'; content: string }[] = [];
+    // Consolidate into user-visible messages.
+    // Tool result messages (role=user with only toolResult blocks) get
+    // merged into the preceding assistant message so the UI shows one
+    // coherent assistant bubble with text + tool_use + tool_result blocks.
+    const messages: {
+      role: 'user' | 'assistant';
+      content: string;
+      blocks?: { type: string; [key: string]: unknown }[];
+    }[] = [];
     for (const msg of rawMessages) {
       const lastMsg = messages[messages.length - 1];
-      if (lastMsg && lastMsg.role === msg.role) {
-        // Append to previous message with newline separator
-        lastMsg.content += '\n\n' + msg.content;
-      } else {
+
+      // Tool result messages (user role, no text, only tool_result blocks)
+      // should merge into the preceding assistant message
+      const isToolResultOnly =
+        msg.role === 'user' &&
+        !msg.content &&
+        msg.blocks?.every((b) => b.type === 'tool_result');
+
+      if (isToolResultOnly && lastMsg?.role === 'assistant') {
+        lastMsg.blocks = [...(lastMsg.blocks || []), ...(msg.blocks || [])];
+      } else if (lastMsg && lastMsg.role === msg.role) {
+        // Merge consecutive same-role messages
+        if (msg.content) {
+          lastMsg.content += lastMsg.content
+            ? '\n\n' + msg.content
+            : msg.content;
+        }
+        if (msg.blocks) {
+          lastMsg.blocks = [...(lastMsg.blocks || []), ...msg.blocks];
+        }
+      } else if (!isToolResultOnly) {
         messages.push({ ...msg });
       }
     }

@@ -21,9 +21,27 @@ export type IPutChatOutput = z.TypeOf<typeof PutChatResponseSchema>;
 
 // Chat History
 
+export const ContentBlockSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('text'), content: z.string() }),
+  z.object({
+    type: z.literal('tool_use'),
+    name: z.string(),
+    input: z.record(z.string(), z.unknown()).optional(),
+  }),
+  z.object({
+    type: z.literal('tool_result'),
+    name: z.string(),
+    status: z.string(),
+    output: z.string(),
+  }),
+]);
+
+export type IContentBlock = z.TypeOf<typeof ContentBlockSchema>;
+
 export const ChatMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.string(),
+  blocks: z.array(ContentBlockSchema).optional(),
 });
 
 export type IChatMessage = z.TypeOf<typeof ChatMessageSchema>;

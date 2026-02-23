@@ -120,7 +120,7 @@ export class APIConstruct extends Construct {
       runtime: lambda.Runtime.NODEJS_LATEST,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(getBundlePath('putChat')),
-      timeout: Duration.minutes(5),
+      timeout: Duration.minutes(15),
       environment: {
         AGENT_RUNTIME_ARN: marketerAgent.agentCoreRuntime.agentRuntimeArn,
       },
@@ -164,6 +164,7 @@ export class APIConstruct extends Construct {
         handler: putChatHandler,
         integration: new apigateway.LambdaIntegration(putChatHandler, {
           responseTransferMode: apigateway.ResponseTransferMode.STREAM,
+          timeout: Duration.minutes(15),
         }),
       },
       getChatHistory: {
