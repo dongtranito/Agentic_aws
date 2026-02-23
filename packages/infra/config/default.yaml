@@ -1,6 +1,6 @@
 deploymentConfig:
   adminUser:
-    email: gjolam+martech@amazon.com
+    email: admin@email.com
     username: admin
   mcp:
     databricks:
