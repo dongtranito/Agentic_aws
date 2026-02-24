@@ -1,0 +1,70 @@
+import {
+  SpaceBetween,
+  Box,
+  ExpandableSection,
+  StatusIndicator,
+} from '@cloudscape-design/components';
+import { CodeView } from '@cloudscape-design/code-view';
+import { ToolOutput } from './ToolOutput';
+import type { ContentBlock } from '../types';
+
+interface ToolBlockProps {
+  name: string;
+  input?: Record<string, unknown>;
+  result?: ContentBlock & { type: 'tool_result' };
+  isFinalized?: boolean;
+}
+
+export const ToolBlock = ({
+  name,
+  input,
+  result,
+  isFinalized,
+}: ToolBlockProps) => {
+  const isComplete = !!result || !!isFinalized;
+  const isSuccess = result ? result.status === 'success' : isFinalized;
+
+  const header = (
+    <StatusIndicator
+      type={isComplete ? (isSuccess ? 'success' : 'error') : 'in-progress'}
+    >
+      {name}
+    </StatusIndicator>
+  );
+
+  return (
+    <Box padding={{ vertical: 'xxs' }}>
+      <ExpandableSection
+        variant="footer"
+        defaultExpanded={false}
+        headerText={header}
+      >
+        <SpaceBetween size="xs">
+          {input && (
+            <Box>
+              <Box fontSize="body-s" fontWeight="bold">
+                Input
+              </Box>
+              <CodeView
+                content={
+                  typeof input === 'string'
+                    ? input
+                    : JSON.stringify(input, null, 2)
+                }
+                wrapLines
+              />
+            </Box>
+          )}
+          {result && (
+            <Box>
+              <Box fontSize="body-s" fontWeight="bold">
+                Output
+              </Box>
+              <ToolOutput output={result.output} />
+            </Box>
+          )}
+        </SpaceBetween>
+      </ExpandableSection>
+    </Box>
+  );
+};

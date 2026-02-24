@@ -1,2 +1,2 @@
 export { Chat } from './Chat';
-export { default } from './Chat';
+export type { ContentBlock, Message } from './types';
