@@ -45,14 +45,69 @@ const formatOutput = (output: string): string => {
 
 const OUTPUT_INLINE_LIMIT = 500;
 
+/**
+ * Tries to extract a `_truncated.full_result_s3_uri` from the output JSON.
+ */
+/**
+ * Tries to extract truncation metadata from the output JSON.
+ */
+const extractTruncationInfo = (
+  output: string,
+): { s3Uri: string; bytes: number } | null => {
+  try {
+    const parsed = JSON.parse(output);
+    const t = parsed?._truncated;
+    if (t?.full_result_s3_uri) {
+      return { s3Uri: t.full_result_s3_uri, bytes: t.full_result_bytes ?? 0 };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const MODAL_SIZE_LIMIT = 500_000; // 500KB — above this, open in new tab
+
 const ToolOutput = ({ output }: { output: string }) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [fullContent, setFullContent] = useState<string | null>(null);
+  const [loadingFull, setLoadingFull] = useState(false);
+  const api = useApi();
+
   const formatted = formatOutput(output);
   const isLarge = formatted.length > OUTPUT_INLINE_LIMIT;
+  const truncation = extractTruncationInfo(output);
+
+  const handleViewFull = async () => {
+    if (!truncation) {
+      setModalVisible(true);
+      return;
+    }
+
+    setLoadingFull(true);
+    try {
+      const presignedUrl = await api.sqlResult.getUrl(truncation.s3Uri);
+
+      if (truncation.bytes > MODAL_SIZE_LIMIT) {
+        // Too large for modal — open in new tab
+        window.open(presignedUrl, '_blank');
+      } else {
+        // Small enough — fetch and show in modal
+        const response = await fetch(presignedUrl);
+        const text = await response.text();
+        setFullContent(formatOutput(text));
+        setModalVisible(true);
+      }
+    } catch (err) {
+      console.error('Failed to load full result:', err);
+    } finally {
+      setLoadingFull(false);
+    }
+  };
 
   if (!output) return <Box color="text-body-secondary">No output</Box>;
 
-  if (!isLarge) {
+  if (!isLarge && !truncation) {
     return <CodeView content={formatted} wrapLines />;
   }
 
@@ -60,11 +115,17 @@ const ToolOutput = ({ output }: { output: string }) => {
     <>
       <SpaceBetween size="xs">
         <CodeView
-          content={formatted.slice(0, OUTPUT_INLINE_LIMIT) + '\n...'}
+          content={
+            isLarge
+              ? formatted.slice(0, OUTPUT_INLINE_LIMIT) + '\n...'
+              : formatted
+          }
           wrapLines
         />
-        <Button variant="link" onClick={() => setModalVisible(true)}>
-          View full output
+        <Button variant="link" onClick={handleViewFull} loading={loadingFull}>
+          {truncation && truncation.bytes > MODAL_SIZE_LIMIT
+            ? 'Download full result'
+            : 'View full output'}
         </Button>
       </SpaceBetween>
       <Modal
@@ -73,7 +134,7 @@ const ToolOutput = ({ output }: { output: string }) => {
         header="Tool Output"
         size="large"
       >
-        <CodeView content={formatted} wrapLines />
+        <CodeView content={fullContent ?? formatted} wrapLines />
       </Modal>
     </>
   );

@@ -20,6 +20,7 @@ export interface APIConstructProps {
   readonly campaignsTable: ddb.ITable;
   readonly campaignActiveIndex: string;
   readonly sessionsBucket: s3.IBucket;
+  readonly sqlResultsBucket: s3.IBucket;
   readonly marketerAgent: MarketerAgent;
   readonly memory: agentcore.Memory;
 }
@@ -42,6 +43,7 @@ export class APIConstruct extends Construct {
       userPool,
       campaignsTable,
       campaignActiveIndex,
+      sqlResultsBucket,
       marketerAgent,
       memory,
     } = props;
@@ -146,6 +148,24 @@ export class APIConstruct extends Construct {
 
     memory.grantFullAccess(getChatHistoryHandler);
 
+    // Lambda for GET /sql-result/{key+}
+    const getSqlResultHandler = new lambda.Function(
+      this,
+      'GetSqlResultHandler',
+      {
+        runtime: lambda.Runtime.NODEJS_LATEST,
+        handler: 'index.handler',
+        code: lambda.Code.fromAsset(getBundlePath('getSqlResult')),
+        timeout: Duration.seconds(30),
+        tracing: lambda.Tracing.ACTIVE,
+        environment: {
+          SQL_RESULTS_BUCKET: sqlResultsBucket.bucketName,
+        },
+      },
+    );
+
+    sqlResultsBucket.grantRead(getSqlResultHandler);
+
     const api = new Api(this, 'RestAPI', {
       identity: { userPool },
       getCampaign: {
@@ -170,6 +190,10 @@ export class APIConstruct extends Construct {
       getChatHistory: {
         handler: getChatHistoryHandler,
         integration: new apigateway.LambdaIntegration(getChatHistoryHandler),
+      },
+      getSqlResult: {
+        handler: getSqlResultHandler,
+        integration: new apigateway.LambdaIntegration(getSqlResultHandler),
       },
     });
 

@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as agentcore from '@aws-cdk/aws-bedrock-agentcore-alpha';
 import { Construct } from 'constructs';
@@ -10,6 +11,7 @@ export interface DatabricksTargetProps {
   bundlePath: string;
   databricksUrl: string;
   databricksToken: string;
+  sqlResultsBucket: s3.IBucket;
 }
 
 export class DatabricksTarget extends Construct {
@@ -19,7 +21,13 @@ export class DatabricksTarget extends Construct {
   constructor(scope: Construct, id: string, props: DatabricksTargetProps) {
     super(scope, id);
 
-    const { gateway, bundlePath, databricksUrl, databricksToken } = props;
+    const {
+      gateway,
+      bundlePath,
+      databricksUrl,
+      databricksToken,
+      sqlResultsBucket,
+    } = props;
 
     this.secret = new secretsmanager.Secret(this, 'Secret', {
       description: 'Databricks credentials (URL and PAT) for MCP server',
@@ -36,10 +44,12 @@ export class DatabricksTarget extends Construct {
       memorySize: 256,
       environment: {
         DATABRICKS_SECRET_ARN: this.secret.secretArn,
+        SQL_RESULTS_BUCKET: sqlResultsBucket.bucketName,
       },
     });
 
     this.secret.grantRead(this.lambda);
+    sqlResultsBucket.grantPut(this.lambda);
 
     suppressRules(
       this.secret,

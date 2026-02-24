@@ -6,6 +6,7 @@ const apiHandlers = [
   'createCampaign',
   'putChat',
   'getChatHistory',
+  'getSqlResult',
 ];
 
 const mcpHandlers = ['databricks', 'clevertap', 'talonone'];

@@ -29,6 +29,7 @@ export class ApplicationStack extends Stack {
     const storage = new StorageAndData(this, 'StorageAndData');
     const gateway = new GatewayConstruct(this, 'Gateway', {
       mcpConfig: deploymentConfig.mcp,
+      sqlResultsBucket: storage.sqlResultsBucket,
     });
     const agents = new AgentConstruct(this, 'Agents', {
       gateway: gateway.gateway,
@@ -39,6 +40,7 @@ export class ApplicationStack extends Stack {
       campaignsTable: storage.campaigns,
       campaignActiveIndex: storage.taskActiveIndex,
       sessionsBucket: storage.sessionsBucket,
+      sqlResultsBucket: storage.sqlResultsBucket,
       marketerAgent: agents.marketer,
       memory: agents.memory,
     });

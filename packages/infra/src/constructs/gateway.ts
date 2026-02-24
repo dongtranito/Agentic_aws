@@ -7,6 +7,7 @@ import { Construct } from 'constructs';
 import * as url from 'url';
 import * as path from 'path';
 import { IMcpConfig } from ':play-c463-z26-rzy-mar-tech/types';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { DatabricksTarget } from './gateway/databricks.js';
 import { ClevertapTarget } from './gateway/clevertap.js';
 import { TalonOneTarget } from './gateway/talonone.js';
@@ -15,6 +16,7 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 export interface GatewayConstructProps {
   mcpConfig: IMcpConfig;
+  sqlResultsBucket: s3.IBucket;
 }
 
 export class GatewayConstruct extends Construct {
@@ -26,7 +28,7 @@ export class GatewayConstruct extends Construct {
   constructor(scope: Construct, id: string, props: GatewayConstructProps) {
     super(scope, id);
 
-    const { mcpConfig } = props;
+    const { mcpConfig, sqlResultsBucket } = props;
 
     const bundlePath = path.resolve(
       __dirname,
@@ -45,6 +47,7 @@ export class GatewayConstruct extends Construct {
       bundlePath,
       databricksUrl: mcpConfig.databricks.url,
       databricksToken: mcpConfig.databricks.token,
+      sqlResultsBucket,
     });
 
     this.clevertap = new ClevertapTarget(this, 'Clevertap', {

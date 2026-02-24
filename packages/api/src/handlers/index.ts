@@ -7,3 +7,4 @@ export * as getCampaigns from './api/getCampaigns.js';
 export * as createCampaign from './api/createCampaign.js';
 export * as putChat from './api/putChat.js';
 export * as getChatHistory from './api/getChatHistory.js';
+export * as getSqlResult from './api/getSqlResult.js';

@@ -59,6 +59,10 @@ export interface ApiProps {
    * Lambda handler for GET /chat/:sessionId
    */
   getChatHistory: ApiIntegration;
+  /**
+   * Lambda handler for GET /sql-result/{key+}
+   */
+  getSqlResult: ApiIntegration;
 }
 
 /**
@@ -73,6 +77,7 @@ export class Api extends Construct {
   public readonly createCampaignHandler: Function;
   public readonly putChatHandler: Function;
   public readonly getChatHistoryHandler: Function;
+  public readonly getSqlResultHandler: Function;
 
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
@@ -84,6 +89,7 @@ export class Api extends Construct {
       createCampaign,
       putChat,
       getChatHistory,
+      getSqlResult,
     } = props;
 
     this.getCampaignHandler = getCampaign.handler;
@@ -91,6 +97,7 @@ export class Api extends Construct {
     this.createCampaignHandler = createCampaign.handler;
     this.putChatHandler = putChat.handler;
     this.getChatHistoryHandler = getChatHistory.handler;
+    this.getSqlResultHandler = getSqlResult.handler;
 
     const authorizer = new CognitoUserPoolsAuthorizer(this, 'ApiAuthorizer', {
       cognitoUserPools: [identity.userPool],
@@ -149,6 +156,11 @@ export class Api extends Construct {
     const chatSessionResource = chatResource.addResource('{sessionId}');
     chatSessionResource.addMethod('GET', getChatHistory.integration);
 
+    // GET /sql-result/{key+}
+    const sqlResultResource = this.api.root.addResource('sql-result');
+    const sqlResultKeyResource = sqlResultResource.addResource('{key+}');
+    sqlResultKeyResource.addMethod('GET', getSqlResult.integration);
+
     // Register the API URL in runtime configuration
     RuntimeConfig.ensure(this).config.apis = {
       ...RuntimeConfig.ensure(this).config.apis!,
@@ -180,6 +192,7 @@ export class Api extends Construct {
       'ALLOWED_ORIGINS',
       allowedOrigins,
     );
+    this.getSqlResultHandler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
   }
 
   /**

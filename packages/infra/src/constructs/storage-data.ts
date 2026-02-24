@@ -10,6 +10,7 @@ import { Construct } from 'constructs';
 export class StorageAndData extends Construct {
   readonly accessLogsBucket: s3.Bucket;
   readonly sessionsBucket: s3.Bucket;
+  readonly sqlResultsBucket: s3.Bucket;
   readonly campaigns: ddb.Table;
   readonly taskActiveIndex: string;
 
@@ -72,6 +73,29 @@ export class StorageAndData extends Construct {
       ['CKV_AWS_21'],
       'Sessions bucket does not need versioning enabled',
     );
+
+    this.sqlResultsBucket = new s3.Bucket(this, 'SqlResultsBucket', {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      publicReadAccess: false,
+      enforceSSL: true,
+      serverAccessLogsBucket: this.accessLogsBucket,
+      serverAccessLogsPrefix: 'sql-results',
+      cors: [
+        {
+          // TODO: restrict this later
+          allowedMethods: [s3.HttpMethods.GET],
+          allowedOrigins: ['*'],
+          allowedHeaders: ['*'],
+        },
+      ],
+    });
+
+    suppressRules(
+      this.sqlResultsBucket,
+      ['CKV_AWS_21'],
+      'SQL results bucket does not need versioning enabled',
+    );
+
     suppressRules(
       this.campaigns,
       ['CKV_AWS_119'],

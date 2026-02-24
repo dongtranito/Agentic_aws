@@ -2,11 +2,20 @@
  * Databricks MCP Server Lambda Handler
  * Implements real Databricks API calls via SQL Statement Execution,
  * SQL Warehouses, Unity Catalog, and Jobs APIs.
+ *
+ * Large SQL results are truncated and the full data is uploaded to S3.
  */
 
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { GatewayContext, extractToolName, getSecret } from './utils/index.js';
 
 const DATABRICKS_SECRET_ARN = process.env.DATABRICKS_SECRET_ARN ?? '';
+const SQL_RESULTS_BUCKET = process.env.SQL_RESULTS_BUCKET ?? '';
+
+const MAX_ROWS = 20;
+const MAX_RESULT_BYTES = 10_000;
+
+const s3 = new S3Client({});
 
 interface DatabricksCredentials {
   url: string;
@@ -45,6 +54,58 @@ async function databricksApi(
   return response.json();
 }
 
+// --- Result truncation ---
+
+interface SqlResult {
+  manifest?: { schema?: { columns?: unknown[] } };
+  result?: { data_array?: unknown[][] };
+  [key: string]: unknown;
+}
+
+async function truncateIfNeeded(result: unknown): Promise<unknown> {
+  const sqlResult = result as SqlResult;
+  const rows = sqlResult?.result?.data_array;
+
+  if (!rows || rows.length === 0) return result;
+
+  const fullJson = JSON.stringify(result);
+  const needsTruncation =
+    rows.length > MAX_ROWS || fullJson.length > MAX_RESULT_BYTES;
+
+  if (!needsTruncation) return result;
+
+  // Upload full result to S3
+  const key = `results/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`;
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: SQL_RESULTS_BUCKET,
+      Key: key,
+      Body: fullJson,
+      ContentType: 'application/json',
+    }),
+  );
+
+  const s3Uri = `s3://${SQL_RESULTS_BUCKET}/${key}`;
+  console.log(
+    `Truncated result uploaded to ${s3Uri} (${rows.length} rows, ${fullJson.length} bytes)`,
+  );
+
+  // Return truncated preview
+  return {
+    ...sqlResult,
+    result: {
+      ...sqlResult.result,
+      data_array: rows.slice(0, MAX_ROWS),
+    },
+    _truncated: {
+      total_rows: rows.length,
+      preview_rows: Math.min(rows.length, MAX_ROWS),
+      full_result_s3_uri: s3Uri,
+      full_result_bytes: fullJson.length,
+    },
+  };
+}
+
 // --- SQL Statement Execution API ---
 
 async function executeSql(args: Record<string, unknown>): Promise<unknown> {
@@ -60,14 +121,19 @@ async function executeSql(args: Record<string, unknown>): Promise<unknown> {
   if (row_limit) body.row_limit = row_limit;
   if (wait_timeout) body.wait_timeout = wait_timeout;
 
-  return databricksApi('POST', '/api/2.0/sql/statements', body);
+  const result = await databricksApi('POST', '/api/2.0/sql/statements', body);
+  return truncateIfNeeded(result);
 }
 
 async function getStatementResult(
   args: Record<string, unknown>,
 ): Promise<unknown> {
   const { statement_id } = args;
-  return databricksApi('GET', `/api/2.0/sql/statements/${statement_id}`);
+  const result = await databricksApi(
+    'GET',
+    `/api/2.0/sql/statements/${statement_id}`,
+  );
+  return truncateIfNeeded(result);
 }
 
 // --- SQL Warehouses API ---

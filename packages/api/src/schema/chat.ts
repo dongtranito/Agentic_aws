@@ -53,3 +53,11 @@ export const GetChatHistoryResponseSchema = z.object({
 export type IGetChatHistoryOutput = z.TypeOf<
   typeof GetChatHistoryResponseSchema
 >;
+
+// SQL Result
+
+export const GetSqlResultResponseSchema = z.object({
+  url: z.string(),
+});
+
+export type IGetSqlResultOutput = z.TypeOf<typeof GetSqlResultResponseSchema>;

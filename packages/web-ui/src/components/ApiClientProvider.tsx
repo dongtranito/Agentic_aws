@@ -5,6 +5,7 @@ import type {
   IGetCampaignsInput,
   IGetCampaignsOutput,
   IGetChatHistoryOutput,
+  IGetSqlResultOutput,
   IPutChatInput,
 } from ':play-c463-z26-rzy-mar-tech/api';
 import { createContext, FC, PropsWithChildren, useMemo } from 'react';
@@ -23,6 +24,9 @@ export interface ApiClient {
       onChunk?: (chunk: string) => void,
     ) => Promise<void>;
     getHistory: (sessionId: string) => Promise<IGetChatHistoryOutput>;
+  };
+  sqlResult: {
+    getUrl: (s3Uri: string) => Promise<string>;
   };
 }
 
@@ -123,6 +127,25 @@ export const ApiClientProvider: FC<PropsWithChildren> = ({ children }) => {
             );
           }
           return response.json();
+        },
+      },
+      sqlResult: {
+        getUrl: async (s3Uri: string) => {
+          // s3://bucket/results/xxx.json → results/xxx.json
+          const key = s3Uri.replace(/^s3:\/\/[^/]+\//, '');
+          const response = await fetch(`${apiUrl}/sql-result/${key}`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${auth.user?.id_token}`,
+            },
+          });
+          if (!response.ok) {
+            throw new Error(
+              `Failed to get SQL result URL: ${response.statusText}`,
+            );
+          }
+          const data: IGetSqlResultOutput = await response.json();
+          return data.url;
         },
       },
     }),
