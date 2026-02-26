@@ -1,22 +1,43 @@
-from contextlib import contextmanager
+import os
 
-from strands import Agent, tool
+from strands import Agent
 from strands_tools import current_time
 
+from .gateway_mcp_client import get_gateway_mcp_client
 
-# Define a custom tool
-@tool
-def add(a: int, b: int) -> int:
-    return a + b
+REGION = os.environ.get("AWS_REGION", "us-east-1")
 
 
-@contextmanager
-def get_agent(session_id: str):
-    yield Agent(
+def get_databricks_agent() -> Agent:
+    """Create a Databricks agent with gateway tools for A2A serving."""
+    mcp_client = get_gateway_mcp_client()
+
+    return Agent(
+        name="Databricks Agent",
+        description="A Databricks data analytics agent for SQL queries, data discovery, and job management.",
         system_prompt="""
-You are an addition wizard.
-Use the 'add' tool for addition tasks.
-Refer to tools as your 'spellbook'.
+You are a Databricks data analytics assistant with access to Databricks tools via the gateway.
+
+You have access to the following Databricks tools:
+- databricks_execute_sql: Execute SQL queries against a Databricks SQL warehouse
+- databricks_get_statement_result: Poll for results of long-running SQL statements
+- databricks_list_warehouses: List available SQL warehouses to discover warehouse IDs
+- databricks_list_schemas: List schemas in a Unity Catalog catalog for data discovery
+- databricks_list_tables: List tables in a Unity Catalog schema for data discovery
+- databricks_get_table: Get table details including column names and types
+- databricks_run_job: Trigger a Databricks job run for ETL pipelines or scheduled tasks
+- databricks_get_job_run: Check the status of a Databricks job run
+
+Workflow guidelines:
+1. When a user asks to query data, first use databricks_list_warehouses to find
+   an available warehouse if no warehouse ID is provided.
+2. Use databricks_list_schemas and databricks_list_tables to discover data before writing queries.
+3. Use databricks_get_table to understand column names and types before constructing SQL.
+4. For SQL queries, use databricks_execute_sql. If the result is PENDING or RUNNING,
+   poll with databricks_get_statement_result.
+5. If results are truncated, inform the user about the S3 location of the full result set.
+6. Always explain what you're doing and interpret the results clearly.
 """,
-        tools=[add, current_time],
+        tools=[current_time, mcp_client],
+        callback_handler=None,
     )

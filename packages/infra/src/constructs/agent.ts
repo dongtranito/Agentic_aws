@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { MarketerAgent } from ':play-c463-z26-rzy-mar-tech/common-constructs';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as agentcore from '@aws-cdk/aws-bedrock-agentcore-alpha';
 import { Construct } from 'constructs';
+import { DatabricksAgentConstruct } from './agents/databricks.js';
+import { MarketerAgentConstruct } from './agents/marketer.js';
 
 export interface AgentConstructProps {
   gateway: agentcore.Gateway;
@@ -22,50 +23,24 @@ export class AgentConstruct extends Construct {
 
     const { gateway, sessionsBucket } = props;
 
-    // Create AgentCore Memory for short-term memory
+    // Shared memory
     this.memory = new agentcore.Memory(this, 'MarketerMemory', {
       memoryName: 'marketer_memory',
       description: 'Short-term memory for the marketer agent',
     });
 
-    const executionRole = new iam.Role(this, 'MarketerRole', {
-      assumedBy: new iam.ServicePrincipal('bedrock-agentcore.amazonaws.com'),
-      inlinePolicies: {
-        BedrockAccess: new iam.PolicyDocument({
-          statements: [
-            new iam.PolicyStatement({
-              actions: [
-                'bedrock:InvokeModel',
-                'bedrock:InvokeModelWithResponseStream',
-                'bedrock:Converse',
-                'bedrock:ConverseStream',
-              ],
-              resources: ['*'],
-              effect: iam.Effect.ALLOW,
-            }),
-          ],
-        }),
-      },
+    // Deploy individual agents
+    const databricks = new DatabricksAgentConstruct(this, 'Databricks', {
+      gateway,
     });
 
-    // Grant the execution role access to memory
-    this.memory.grantFullAccess(executionRole);
-
-    // Grant the execution role access to invoke the gateway
-    gateway.grantInvoke(executionRole);
-
-    // Grant the execution role access to the sessions bucket for artifacts
-    sessionsBucket.grantReadWrite(executionRole);
-
-    const marketer = new MarketerAgent(this, 'Marketer', {
-      executionRole,
-      environmentVariables: {
-        MEMORY_ID: this.memory.memoryId,
-        GATEWAY_URL: gateway.gatewayUrl ?? '',
-        ARTIFACT_BUCKET: sessionsBucket.bucketName,
-      },
+    const marketer = new MarketerAgentConstruct(this, 'Marketer', {
+      gateway,
+      memory: this.memory,
+      sessionsBucket,
+      databricksRuntime: databricks.agent.agentCoreRuntime,
     });
 
-    this.marketer = marketer;
+    this.marketer = marketer.agent;
   }
 }

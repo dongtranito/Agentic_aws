@@ -39,7 +39,7 @@ export class DatabricksAgent extends Construct {
         produce: () =>
           Names.uniqueResourceName(this.agentCoreRuntime, { maxLength: 40 }),
       }),
-      protocolConfiguration: ProtocolType.HTTP,
+      protocolConfiguration: ProtocolType.A2A,
       agentRuntimeArtifact: this.dockerImage,
       ...props,
     });

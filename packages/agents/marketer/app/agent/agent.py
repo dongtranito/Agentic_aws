@@ -1,26 +1,22 @@
 import os
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 
 from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig
 from bedrock_agentcore.memory.integrations.strands.session_manager import AgentCoreMemorySessionManager
-from strands import Agent, tool
+from strands import Agent
 from strands_tools import current_time
 
-from .gateway_mcp_client import get_gateway_mcp_client
 from .hooks import S3ArtifactHook
+from .worker_agents import build_databricks_tool
 
 MEMORY_ID = os.environ["MEMORY_ID"]
 REGION = os.environ.get("AWS_REGION", "us-east-1")
-
-
-@tool
-def add(a: int, b: int) -> int:
-    return a + b
+DATABRICKS_A2A_ENDPOINT = os.environ["DATABRICKS_A2A_ENDPOINT"]
 
 
 @contextmanager
 def get_agent(session_id: str, actor_id: str):
-    """Get an agent with AgentCore memory session manager and gateway tools."""
+    """Get an agent with AgentCore memory and A2A worker agents."""
     agentcore_memory_config = AgentCoreMemoryConfig(
         memory_id=MEMORY_ID,
         session_id=session_id,
@@ -32,25 +28,19 @@ def get_agent(session_id: str, actor_id: str):
         region_name=REGION,
     )
 
-    # Base tools
-    tools = [add, current_time]
-
-    # Get gateway tools
-    mcp_client = get_gateway_mcp_client()
-    mcp_client.__enter__()
-    gateway_tools = mcp_client.list_tools_sync()
-    tools.extend(gateway_tools)
-    print(f"Loaded {len(gateway_tools)} tools from gateway")
+    tools = [
+        current_time,
+        build_databricks_tool(DATABRICKS_A2A_ENDPOINT, REGION),
+    ]
 
     try:
         agent = Agent(
             system_prompt="""
-You are a marketing assistant with access to various marketing tools.
+You are a marketing assistant that orchestrates specialized worker agents.
 
-You have access to the following tool categories:
-- Databricks: For data analytics, audience segmentation, and SQL queries
-- CleverTap: For customer engagement, push notifications, and user profiles
-- TalonOne: For loyalty programs, promotions, and coupon management
+You have access to the following worker agents:
+- query_databricks: For data analytics, audience segmentation, and SQL queries.
+  Delegate all Databricks-related tasks to this tool with a clear natural language request.
 
 Use the appropriate tools to help users with their marketing tasks.
 When using tools, always explain what you're doing and interpret the results.
@@ -59,12 +49,9 @@ When using tools, always explain what you're doing and interpret the results.
             session_manager=session_manager,
         )
 
-        # Register S3 artifact hook
         s3_hook = S3ArtifactHook(session_id=session_id, actor_id=actor_id)
         s3_hook.register(agent.hooks)
 
         yield agent
     finally:
-        with suppress(Exception):
-            mcp_client.__exit__(None, None, None)
         session_manager.close()
