@@ -49,6 +49,13 @@ export class MarketerAgentConstruct extends Construct {
     sessionsBucket.grantReadWrite(this.executionRole);
     databricksRuntime.grantInvoke(this.executionRole);
 
+    this.executionRole.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ['bedrock-agentcore:GetAgentCard'],
+        resources: [`${databricksRuntime.agentRuntimeArn}*`],
+      }),
+    );
+
     this.agent = new MarketerAgent(this, 'Agent', {
       executionRole: this.executionRole,
       environmentVariables: {

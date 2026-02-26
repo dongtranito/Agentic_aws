@@ -1,9 +1,12 @@
-"""AWS SigV4 authentication for HTTPX clients."""
+"""AWS SigV4 authentication for HTTPX clients.
 
-import hashlib
+Based on: aws-samples/sample-strands-agent-with-agentcore
+"""
+
 from collections.abc import Generator
 from typing import Any
 
+import boto3
 import httpx
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
@@ -12,16 +15,32 @@ from botocore.awsrequest import AWSRequest
 class SigV4HTTPXAuth(httpx.Auth):
     """HTTPX Auth class that signs requests with AWS SigV4."""
 
-    def __init__(self, credentials: Any, region: str, service: str = "bedrock-agentcore"):
+    def __init__(
+        self,
+        credentials: Any | None = None,
+        region: str | None = None,
+        service: str = "bedrock-agentcore",
+    ):
+        if credentials is None:
+            session = boto3.Session()
+            credentials = session.get_credentials()
+            if credentials is None:
+                raise ValueError("No AWS credentials found.")
+
+        if region is None:
+            session = boto3.Session()
+            region = session.region_name
+            if region is None:
+                raise ValueError("No AWS region found.")
+
         self.credentials = credentials
         self.service = service
         self.region = region
-        self.signer = SigV4Auth(credentials, self.service, region)
+        self.signer = SigV4Auth(credentials, service, region)
 
     def auth_flow(self, request: httpx.Request) -> Generator[httpx.Request, httpx.Response, None]:
         headers = dict(request.headers)
         headers.pop("connection", None)
-        headers["x-amz-content-sha256"] = hashlib.sha256(request.content if request.content else b"").hexdigest()
 
         aws_request = AWSRequest(
             method=request.method,
@@ -31,6 +50,5 @@ class SigV4HTTPXAuth(httpx.Auth):
         )
         self.signer.add_auth(aws_request)
 
-        request.headers.clear()
         request.headers.update(dict(aws_request.headers))
         yield request
