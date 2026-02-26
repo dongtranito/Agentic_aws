@@ -12,7 +12,10 @@
         "test",
         "@play-c463-z26-rzy-mar-tech/api:build",
         "@play-c463-z26-rzy-mar-tech/web-ui:build",
-        "play_c463_z26_rzy_mar_tech.marketer:build"
+        "play_c463_z26_rzy_mar_tech.marketer:build",
+        "play_c463_z26_rzy_mar_tech.databricks:build",
+        "play_c463_z26_rzy_mar_tech.talonone:build",
+        "play_c463_z26_rzy_mar_tech.clevertap:build"
       ]
     },
     "compile": {

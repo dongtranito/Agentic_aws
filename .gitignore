@@ -38,6 +38,5 @@ runtime-config.json
 vitest.config.*.timestamp*
 vite.config.*.timestamp*
 /reports
-
 # Local config (contains secrets)
 packages/infra/config/local.yaml

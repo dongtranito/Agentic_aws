@@ -1,12 +1,31 @@
 [project]
 name = "nx-workspace"
 version = "1.0.0"
-dependencies = [ "play_c463_z26_rzy_mar_tech.marketer" ]
+dependencies = [
+  "play_c463_z26_rzy_mar_tech.clevertap",
+  "play_c463_z26_rzy_mar_tech.databricks",
+  "play_c463_z26_rzy_mar_tech.marketer",
+  "play_c463_z26_rzy_mar_tech.talonone"
+]
 
 [tool.uv.workspace]
-members = [ "packages/marketer" ]
+members = [
+  "packages/agents/clevertap",
+  "packages/agents/databricks",
+  "packages/agents/talonone",
+  "packages/marketer"
+]
+
+[tool.uv.sources."play_c463_z26_rzy_mar_tech.clevertap"]
+workspace = true
+
+[tool.uv.sources."play_c463_z26_rzy_mar_tech.databricks"]
+workspace = true
 
 [tool.uv.sources."play_c463_z26_rzy_mar_tech.marketer"]
+workspace = true
+
+[tool.uv.sources."play_c463_z26_rzy_mar_tech.talonone"]
 workspace = true
 
 [dependency-groups]

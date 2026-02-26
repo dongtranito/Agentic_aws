@@ -1,0 +1,1 @@
+FROM talonone-agent:latest
