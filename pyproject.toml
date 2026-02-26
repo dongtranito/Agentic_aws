@@ -13,7 +13,7 @@ members = [
   "packages/agents/clevertap",
   "packages/agents/databricks",
   "packages/agents/talonone",
-  "packages/marketer"
+  "packages/agents/marketer"
 ]
 
 [tool.uv.sources."play_c463_z26_rzy_mar_tech.clevertap"]

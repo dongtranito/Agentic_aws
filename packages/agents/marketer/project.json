@@ -1,8 +1,8 @@
 {
   "name": "play_c463_z26_rzy_mar_tech.marketer",
-  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
-  "sourceRoot": "packages/marketer/app",
+  "sourceRoot": "packages/agents/marketer/app",
   "release": {
     "version": {
       "versionActions": "@nxlv/python/src/release/version-actions"
@@ -28,14 +28,14 @@
     "build": {
       "dependsOn": ["lint", "compile", "test", "bundle", "docker"],
       "options": {
-        "outputPath": "{workspaceRoot}/dist/packages/marketer"
+        "outputPath": "{workspaceRoot}/dist/packages/agents/marketer"
       }
     },
     "compile": {
       "executor": "@nxlv/python:build",
-      "outputs": ["{workspaceRoot}/dist/packages/marketer/build"],
+      "outputs": ["{workspaceRoot}/dist/packages/agents/marketer/build"],
       "options": {
-        "outputPath": "{workspaceRoot}/dist/packages/marketer/build",
+        "outputPath": "{workspaceRoot}/dist/packages/agents/marketer/build",
         "publish": false,
         "lockedVersions": true,
         "bundleLocalDependencies": true
@@ -101,11 +101,11 @@
     "bundle-arm": {
       "cache": true,
       "executor": "nx:run-commands",
-      "outputs": ["{workspaceRoot}/dist/packages/marketer/bundle-arm"],
+      "outputs": ["{workspaceRoot}/dist/packages/agents/marketer/bundle-arm"],
       "options": {
         "commands": [
-          "uv export --frozen --no-dev --no-editable --project packages/marketer --package play_c463_z26_rzy_mar_tech.marketer -o dist/packages/marketer/bundle-arm/requirements.txt",
-          "uv pip install -n --no-deps --no-installer-metadata --no-compile-bytecode --python-platform aarch64-manylinux2014 --target dist/packages/marketer/bundle-arm -r dist/packages/marketer/bundle-arm/requirements.txt"
+          "uv export --frozen --no-dev --no-editable --project packages/agents/marketer --package play_c463_z26_rzy_mar_tech.marketer -o dist/packages/agents/marketer/bundle-arm/requirements.txt",
+          "uv pip install -n --no-deps --no-installer-metadata --no-compile-bytecode --python-platform aarch64-manylinux2014 --target dist/packages/agents/marketer/bundle-arm -r dist/packages/agents/marketer/bundle-arm/requirements.txt"
         ],
         "parallel": false
       },
@@ -119,7 +119,7 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "docker build --platform linux/arm64 -t marketer-agent:latest packages/marketer/app/agent --build-context workspace=."
+          "docker build --platform linux/arm64 -t marketer-agent:latest packages/agents/marketer/app/agent --build-context workspace=."
         ],
         "parallel": false
       },

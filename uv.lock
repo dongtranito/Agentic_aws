@@ -1346,7 +1346,7 @@ dev = [
 requires-dist = [
     { name = "play-c463-z26-rzy-mar-tech-clevertap", editable = "packages/agents/clevertap" },
     { name = "play-c463-z26-rzy-mar-tech-databricks", editable = "packages/agents/databricks" },
-    { name = "play-c463-z26-rzy-mar-tech-marketer", editable = "packages/marketer" },
+    { name = "play-c463-z26-rzy-mar-tech-marketer", editable = "packages/agents/marketer" },
     { name = "play-c463-z26-rzy-mar-tech-talonone", editable = "packages/agents/talonone" },
 ]
 
@@ -2394,7 +2394,7 @@ dev = [{ name = "fastapi", extras = ["standard"], specifier = "==0.128.5" }]
 [[package]]
 name = "play-c463-z26-rzy-mar-tech-marketer"
 version = "1.0.0"
-source = { editable = "packages/marketer" }
+source = { editable = "packages/agents/marketer" }
 dependencies = [
     { name = "aws-opentelemetry-distro" },
     { name = "bedrock-agentcore", extra = ["strands-agents"] },

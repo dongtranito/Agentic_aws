@@ -9,10 +9,10 @@ show_missing = true
 [tool.pytest.ini_options]
 addopts = """
  --cov
- --cov-report html:'../../coverage/packages/marketer/html'
- --cov-report xml:'../../coverage/packages/marketer/coverage.xml'
- --html='../../reports/packages/marketer/unittests/html/index.html'
- --junitxml='../../reports/packages/marketer/unittests/junit.xml'
+ --cov-report html:'../../../coverage/packages/agents/marketer/html'
+ --cov-report xml:'../../../coverage/packages/agents/marketer/coverage.xml'
+ --html='../../../reports/packages/agents/marketer/unittests/html/index.html'
+ --junitxml='../../../reports/packages/agents/marketer/unittests/junit.xml'
 """
 
 [tool.hatch.build.targets.wheel]

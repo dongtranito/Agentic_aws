@@ -3,7 +3,7 @@ FROM public.ecr.aws/docker/library/python:3.12-slim
 WORKDIR /app
 
 # Copy bundled package
-COPY --from=workspace dist/packages/marketer/bundle-arm /app
+COPY --from=workspace dist/packages/agents/marketer/bundle-arm /app
 
 EXPOSE 8080
 
