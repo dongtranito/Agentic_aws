@@ -26,7 +26,7 @@ export class TalonOneTarget extends Construct {
 
     const toolSchema = agentcore.ToolSchema.fromInline([
       {
-        name: 'talonone_get_campaign',
+        name: 'get_campaign',
         description: 'Get details of a TalonOne promotion campaign',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -40,7 +40,7 @@ export class TalonOneTarget extends Construct {
         },
       },
       {
-        name: 'talonone_list_campaigns',
+        name: 'list_campaigns',
         description: 'List all TalonOne promotion campaigns',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -48,7 +48,7 @@ export class TalonOneTarget extends Construct {
         },
       },
       {
-        name: 'talonone_get_customer_session',
+        name: 'get_customer_session',
         description: 'Get a customer shopping session from TalonOne',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -62,7 +62,7 @@ export class TalonOneTarget extends Construct {
         },
       },
       {
-        name: 'talonone_update_customer_session',
+        name: 'update_customer_session',
         description: 'Update a customer shopping session in TalonOne',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -80,7 +80,7 @@ export class TalonOneTarget extends Construct {
         },
       },
       {
-        name: 'talonone_get_loyalty_program',
+        name: 'get_loyalty_program',
         description: 'Get loyalty program details from TalonOne',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -88,7 +88,7 @@ export class TalonOneTarget extends Construct {
         },
       },
       {
-        name: 'talonone_get_customer_loyalty',
+        name: 'get_customer_loyalty',
         description: 'Get customer loyalty status and points from TalonOne',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -102,7 +102,7 @@ export class TalonOneTarget extends Construct {
         },
       },
       {
-        name: 'talonone_redeem_points',
+        name: 'redeem_points',
         description: 'Redeem loyalty points for a customer in TalonOne',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -124,7 +124,7 @@ export class TalonOneTarget extends Construct {
         },
       },
       {
-        name: 'talonone_list_coupons',
+        name: 'list_coupons',
         description: 'List all coupons in TalonOne',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -132,7 +132,7 @@ export class TalonOneTarget extends Construct {
         },
       },
       {
-        name: 'talonone_validate_coupon',
+        name: 'validate_coupon',
         description: 'Validate a coupon code in TalonOne',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -146,7 +146,7 @@ export class TalonOneTarget extends Construct {
         },
       },
       {
-        name: 'talonone_create_coupon',
+        name: 'create_coupon',
         description: 'Create a new coupon in TalonOne',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,

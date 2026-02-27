@@ -133,7 +133,7 @@ function handleToolCall(
   console.log(`Handling tool: ${toolName} with args:`, JSON.stringify(args));
 
   switch (toolName) {
-    case 'talonone_get_campaign':
+    case 'get_campaign':
       return {
         status: 'success',
         data: {
@@ -142,7 +142,7 @@ function handleToolCall(
         },
       };
 
-    case 'talonone_list_campaigns':
+    case 'list_campaigns':
       return {
         status: 'success',
         data: {
@@ -151,7 +151,7 @@ function handleToolCall(
         },
       };
 
-    case 'talonone_get_customer_session':
+    case 'get_customer_session':
       return {
         status: 'success',
         data: {
@@ -160,7 +160,7 @@ function handleToolCall(
         },
       };
 
-    case 'talonone_update_customer_session':
+    case 'update_customer_session':
       return {
         status: 'success',
         data: {
@@ -171,13 +171,13 @@ function handleToolCall(
         },
       };
 
-    case 'talonone_get_loyalty_program':
+    case 'get_loyalty_program':
       return {
         status: 'success',
         data: mockLoyaltyProgram,
       };
 
-    case 'talonone_get_customer_loyalty':
+    case 'get_customer_loyalty':
       return {
         status: 'success',
         data: {
@@ -186,7 +186,7 @@ function handleToolCall(
         },
       };
 
-    case 'talonone_redeem_points': {
+    case 'redeem_points': {
       const pointsToRedeem = (args.points as number) || 500;
       return {
         status: 'success',
@@ -203,7 +203,7 @@ function handleToolCall(
       };
     }
 
-    case 'talonone_list_coupons':
+    case 'list_coupons':
       return {
         status: 'success',
         data: {
@@ -212,7 +212,7 @@ function handleToolCall(
         },
       };
 
-    case 'talonone_validate_coupon': {
+    case 'validate_coupon': {
       const coupon = mockCoupons.find((c) => c.code === args.coupon_code);
       if (coupon) {
         return {
@@ -233,7 +233,7 @@ function handleToolCall(
       };
     }
 
-    case 'talonone_create_coupon':
+    case 'create_coupon':
       return {
         status: 'success',
         data: {

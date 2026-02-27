@@ -26,7 +26,7 @@ export class ClevertapTarget extends Construct {
 
     const toolSchema = agentcore.ToolSchema.fromInline([
       {
-        name: 'clevertap_get_user_profile',
+        name: 'get_user_profile',
         description: 'Get a user profile from CleverTap',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -40,7 +40,7 @@ export class ClevertapTarget extends Construct {
         },
       },
       {
-        name: 'clevertap_get_campaign_stats',
+        name: 'get_campaign_stats',
         description: 'Get statistics for a CleverTap campaign',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -54,7 +54,7 @@ export class ClevertapTarget extends Construct {
         },
       },
       {
-        name: 'clevertap_list_segments',
+        name: 'list_segments',
         description: 'List all user segments in CleverTap',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -62,7 +62,7 @@ export class ClevertapTarget extends Construct {
         },
       },
       {
-        name: 'clevertap_get_event_data',
+        name: 'get_event_data',
         description: 'Get event analytics data from CleverTap',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -76,7 +76,7 @@ export class ClevertapTarget extends Construct {
         },
       },
       {
-        name: 'clevertap_send_push_notification',
+        name: 'send_push_notification',
         description: 'Send a push notification to a user via CleverTap',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,
@@ -98,7 +98,7 @@ export class ClevertapTarget extends Construct {
         },
       },
       {
-        name: 'clevertap_create_segment',
+        name: 'create_segment',
         description: 'Create a new user segment in CleverTap',
         inputSchema: {
           type: agentcore.SchemaDefinitionType.OBJECT,

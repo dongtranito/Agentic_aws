@@ -191,14 +191,14 @@ async function getJobRun(args: Record<string, unknown>): Promise<unknown> {
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
 
 const toolRegistry: Record<string, ToolHandler> = {
-  databricks_execute_sql: executeSql,
-  databricks_get_statement_result: getStatementResult,
-  databricks_list_warehouses: () => listWarehouses(),
-  databricks_list_schemas: listSchemas,
-  databricks_list_tables: listTables,
-  databricks_get_table: getTable,
-  databricks_run_job: runJob,
-  databricks_get_job_run: getJobRun,
+  execute_sql: executeSql,
+  get_statement_result: getStatementResult,
+  list_warehouses: () => listWarehouses(),
+  list_schemas: listSchemas,
+  list_tables: listTables,
+  get_table: getTable,
+  run_job: runJob,
+  get_job_run: getJobRun,
 };
 
 export const handler = async (

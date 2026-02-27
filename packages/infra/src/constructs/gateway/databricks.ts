@@ -62,7 +62,7 @@ export class DatabricksTarget extends Construct {
     const toolSchema = agentcore.ToolSchema.fromInline([
       // SQL Statement Execution API
       {
-        name: 'databricks_execute_sql',
+        name: 'execute_sql',
         description:
           'Execute a SQL query against a Databricks SQL warehouse. Returns results directly for short queries or a statement_id for long-running ones.',
         inputSchema: {
@@ -90,16 +90,15 @@ export class DatabricksTarget extends Construct {
         },
       },
       {
-        name: 'databricks_get_statement_result',
+        name: 'get_statement_result',
         description:
-          'Poll for results of a previously submitted SQL statement. Use when databricks_execute_sql returns a PENDING or RUNNING status.',
+          'Poll for results of a previously submitted SQL statement. Use when execute_sql returns a PENDING or RUNNING status.',
         inputSchema: {
           type: T.OBJECT,
           properties: {
             statement_id: {
               type: T.STRING,
-              description:
-                'The statement ID returned by databricks_execute_sql',
+              description: 'The statement ID returned by execute_sql',
             },
           },
           required: ['statement_id'],
@@ -107,7 +106,7 @@ export class DatabricksTarget extends Construct {
       },
       // SQL Warehouses API
       {
-        name: 'databricks_list_warehouses',
+        name: 'list_warehouses',
         description:
           'List all available SQL warehouses. Use this to discover warehouse IDs before running queries.',
         inputSchema: {
@@ -117,7 +116,7 @@ export class DatabricksTarget extends Construct {
       },
       // Unity Catalog APIs
       {
-        name: 'databricks_list_schemas',
+        name: 'list_schemas',
         description:
           'List all schemas in a Unity Catalog catalog. Use for data discovery.',
         inputSchema: {
@@ -132,7 +131,7 @@ export class DatabricksTarget extends Construct {
         },
       },
       {
-        name: 'databricks_list_tables',
+        name: 'list_tables',
         description:
           'List all tables in a Unity Catalog schema. Use for data discovery.',
         inputSchema: {
@@ -148,7 +147,7 @@ export class DatabricksTarget extends Construct {
         },
       },
       {
-        name: 'databricks_get_table',
+        name: 'get_table',
         description:
           'Get table details including column names and types from Unity Catalog. Use to understand table structure before writing queries.',
         inputSchema: {
@@ -164,7 +163,7 @@ export class DatabricksTarget extends Construct {
       },
       // Jobs API
       {
-        name: 'databricks_run_job',
+        name: 'run_job',
         description:
           'Trigger a Databricks job run. Use for ETL pipelines or scheduled tasks.',
         inputSchema: {
@@ -180,7 +179,7 @@ export class DatabricksTarget extends Construct {
         },
       },
       {
-        name: 'databricks_get_job_run',
+        name: 'get_job_run',
         description: 'Check the status of a Databricks job run.',
         inputSchema: {
           type: T.OBJECT,

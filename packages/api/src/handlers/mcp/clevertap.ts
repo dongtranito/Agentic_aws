@@ -83,7 +83,7 @@ function handleToolCall(
   console.log(`Handling tool: ${toolName} with args:`, JSON.stringify(args));
 
   switch (toolName) {
-    case 'clevertap_get_user_profile':
+    case 'get_user_profile':
       return {
         status: 'success',
         data: {
@@ -92,7 +92,7 @@ function handleToolCall(
         },
       };
 
-    case 'clevertap_get_campaign_stats':
+    case 'get_campaign_stats':
       return {
         status: 'success',
         data: {
@@ -101,7 +101,7 @@ function handleToolCall(
         },
       };
 
-    case 'clevertap_list_segments':
+    case 'list_segments':
       return {
         status: 'success',
         data: {
@@ -110,7 +110,7 @@ function handleToolCall(
         },
       };
 
-    case 'clevertap_get_event_data':
+    case 'get_event_data':
       return {
         status: 'success',
         data: {
@@ -119,7 +119,7 @@ function handleToolCall(
         },
       };
 
-    case 'clevertap_send_push_notification':
+    case 'send_push_notification':
       return {
         status: 'success',
         data: {
@@ -132,7 +132,7 @@ function handleToolCall(
         },
       };
 
-    case 'clevertap_create_segment':
+    case 'create_segment':
       return {
         status: 'success',
         data: {

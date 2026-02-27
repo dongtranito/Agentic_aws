@@ -55,5 +55,5 @@ def get_gateway_mcp_client() -> MCPClient:
             auth=SigV4HTTPXAuth(credentials, REGION),
             timeout=120,
         ),
-        tool_filters={"allowed": [re.compile(r"^talonone_.*")]},
+        tool_filters={"allowed": [re.compile(r"^talonone-target___")]},
     )
