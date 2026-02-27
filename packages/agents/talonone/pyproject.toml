@@ -44,7 +44,7 @@ dependencies = [
   "fastapi==0.128.5",
   "boto3==1.42.54",
   "mcp==1.26.0",
-  "strands-agents==1.28.0",
+  "strands-agents[a2a]==1.28.0",
   "strands-agents-tools==0.2.21",
   "uvicorn==0.40.0"
 ]

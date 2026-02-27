@@ -2486,7 +2486,7 @@ dependencies = [
     { name = "boto3" },
     { name = "fastapi" },
     { name = "mcp" },
-    { name = "strands-agents" },
+    { name = "strands-agents", extra = ["a2a"] },
     { name = "strands-agents-tools" },
     { name = "uvicorn" },
 ]
@@ -2503,7 +2503,7 @@ requires-dist = [
     { name = "boto3", specifier = "==1.42.54" },
     { name = "fastapi", specifier = "==0.128.5" },
     { name = "mcp", specifier = "==1.26.0" },
-    { name = "strands-agents", specifier = "==1.28.0" },
+    { name = "strands-agents", extras = ["a2a"], specifier = "==1.28.0" },
     { name = "strands-agents-tools", specifier = "==0.2.21" },
     { name = "uvicorn", specifier = "==0.40.0" },
 ]
@@ -2607,7 +2607,7 @@ dependencies = [
     { name = "boto3" },
     { name = "fastapi" },
     { name = "mcp" },
-    { name = "strands-agents" },
+    { name = "strands-agents", extra = ["a2a"] },
     { name = "strands-agents-tools" },
     { name = "uvicorn" },
 ]
@@ -2624,7 +2624,7 @@ requires-dist = [
     { name = "boto3", specifier = "==1.42.54" },
     { name = "fastapi", specifier = "==0.128.5" },
     { name = "mcp", specifier = "==1.26.0" },
-    { name = "strands-agents", specifier = "==1.28.0" },
+    { name = "strands-agents", extras = ["a2a"], specifier = "==1.28.0" },
     { name = "strands-agents-tools", specifier = "==0.2.21" },
     { name = "uvicorn", specifier = "==0.40.0" },
 ]

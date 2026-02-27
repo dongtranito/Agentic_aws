@@ -9,6 +9,8 @@ export interface MarketerAgentConstructProps {
   memory: agentcore.Memory;
   sessionsBucket: s3.IBucket;
   databricksRuntime: agentcore.Runtime;
+  clevertapRuntime: agentcore.Runtime;
+  talononeRuntime: agentcore.Runtime;
 }
 
 export class MarketerAgentConstruct extends Construct {
@@ -22,7 +24,14 @@ export class MarketerAgentConstruct extends Construct {
   ) {
     super(scope, id);
 
-    const { gateway, memory, sessionsBucket, databricksRuntime } = props;
+    const {
+      gateway,
+      memory,
+      sessionsBucket,
+      databricksRuntime,
+      clevertapRuntime,
+      talononeRuntime,
+    } = props;
 
     this.executionRole = new iam.Role(this, 'Role', {
       assumedBy: new iam.ServicePrincipal('bedrock-agentcore.amazonaws.com'),
@@ -47,14 +56,21 @@ export class MarketerAgentConstruct extends Construct {
     memory.grantFullAccess(this.executionRole);
     gateway.grantInvoke(this.executionRole);
     sessionsBucket.grantReadWrite(this.executionRole);
-    databricksRuntime.grantInvoke(this.executionRole);
 
-    this.executionRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: ['bedrock-agentcore:GetAgentCard'],
-        resources: [`${databricksRuntime.agentRuntimeArn}*`],
-      }),
-    );
+    // Grant invoke + GetAgentCard for all worker agent runtimes
+    for (const runtime of [
+      databricksRuntime,
+      clevertapRuntime,
+      talononeRuntime,
+    ]) {
+      runtime.grantInvoke(this.executionRole);
+      this.executionRole.addToPolicy(
+        new iam.PolicyStatement({
+          actions: ['bedrock-agentcore:GetAgentCard'],
+          resources: [`${runtime.agentRuntimeArn}*`],
+        }),
+      );
+    }
 
     this.agent = new MarketerAgent(this, 'Agent', {
       executionRole: this.executionRole,
@@ -63,6 +79,8 @@ export class MarketerAgentConstruct extends Construct {
         GATEWAY_URL: gateway.gatewayUrl ?? '',
         ARTIFACT_BUCKET: sessionsBucket.bucketName,
         DATABRICKS_A2A_ENDPOINT: databricksRuntime.agentRuntimeArn,
+        CLEVERTAP_A2A_ENDPOINT: clevertapRuntime.agentRuntimeArn,
+        TALONONE_A2A_ENDPOINT: talononeRuntime.agentRuntimeArn,
       },
     });
   }

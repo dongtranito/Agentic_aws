@@ -6,8 +6,10 @@ import { MarketerAgent } from ':play-c463-z26-rzy-mar-tech/common-constructs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as agentcore from '@aws-cdk/aws-bedrock-agentcore-alpha';
 import { Construct } from 'constructs';
+import { ClevertapAgentConstruct } from './agents/clevertap.js';
 import { DatabricksAgentConstruct } from './agents/databricks.js';
 import { MarketerAgentConstruct } from './agents/marketer.js';
+import { TalononeAgentConstruct } from './agents/talonone.js';
 
 export interface AgentConstructProps {
   gateway: agentcore.Gateway;
@@ -34,11 +36,21 @@ export class AgentConstruct extends Construct {
       gateway,
     });
 
+    const clevertap = new ClevertapAgentConstruct(this, 'Clevertap', {
+      gateway,
+    });
+
+    const talonone = new TalononeAgentConstruct(this, 'Talonone', {
+      gateway,
+    });
+
     const marketer = new MarketerAgentConstruct(this, 'Marketer', {
       gateway,
       memory: this.memory,
       sessionsBucket,
       databricksRuntime: databricks.agent.agentCoreRuntime,
+      clevertapRuntime: clevertap.agent.agentCoreRuntime,
+      talononeRuntime: talonone.agent.agentCoreRuntime,
     });
 
     this.marketer = marketer.agent;

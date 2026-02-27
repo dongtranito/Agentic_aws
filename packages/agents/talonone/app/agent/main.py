@@ -1,41 +1,37 @@
+import logging
+import os
+
 import uvicorn
-from bedrock_agentcore.runtime.models import PingStatus
-from fastapi.responses import PlainTextResponse, StreamingResponse
-from pydantic import BaseModel
+from fastapi import FastAPI
+from strands.multiagent.a2a import A2AServer
 
-from .agent import get_agent
-from .init import app
+from .agent import get_talonone_agent
 
+logging.basicConfig(level=logging.INFO)
 
-class InvokeInput(BaseModel):
-    prompt: str
-    session_id: str
+runtime_url = os.environ.get("AGENTCORE_RUNTIME_URL", "http://127.0.0.1:9000/")
 
+logging.info(f"Runtime URL: {runtime_url}")
 
-async def handle_invoke(input: InvokeInput):
-    """Streaming handler for agent invocation"""
-    with get_agent(session_id=input.session_id) as agent:
-        stream = agent.stream_async(input.prompt)
-        async for event in stream:
-            print(event)
-            content = event.get("event", {}).get("contentBlockDelta", {}).get("delta", {}).get("text")
-            if content is not None:
-                yield content
-            elif event.get("event", {}).get("messageStop") is not None:
-                yield "\n"
+strands_agent = get_talonone_agent()
 
+host, port = "0.0.0.0", 9000
 
-@app.post("/invocations", openapi_extra={"x-streaming": True}, response_class=PlainTextResponse)
-async def invoke(input: InvokeInput) -> str:
-    """Entry point for agent invocation"""
-    return StreamingResponse(handle_invoke(input), media_type="text/event-stream")
+a2a_server = A2AServer(
+    agent=strands_agent,
+    http_url=runtime_url,
+    serve_at_root=True,
+)
+
+app = FastAPI()
 
 
 @app.get("/ping")
-def ping() -> str:
-    # TODO: if running an async task, return PingStatus.HEALTHY_BUSY
-    return PingStatus.HEALTHY
+def ping():
+    return {"status": "healthy"}
 
+
+app.mount("/", a2a_server.to_fastapi_app())
 
 if __name__ == "__main__":
-    uvicorn.run("app.agent.main:app", port=8080)
+    uvicorn.run(app, host=host, port=port)
