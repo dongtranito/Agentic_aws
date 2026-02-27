@@ -10,6 +10,7 @@ resolution-markers = [
 members = [
     "nx-workspace",
     "play-c463-z26-rzy-mar-tech-clevertap",
+    "play-c463-z26-rzy-mar-tech-common",
     "play-c463-z26-rzy-mar-tech-databricks",
     "play-c463-z26-rzy-mar-tech-marketer",
     "play-c463-z26-rzy-mar-tech-talonone",
@@ -1482,6 +1483,7 @@ version = "1.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "play-c463-z26-rzy-mar-tech-clevertap" },
+    { name = "play-c463-z26-rzy-mar-tech-common" },
     { name = "play-c463-z26-rzy-mar-tech-databricks" },
     { name = "play-c463-z26-rzy-mar-tech-marketer" },
     { name = "play-c463-z26-rzy-mar-tech-talonone" },
@@ -1500,6 +1502,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "play-c463-z26-rzy-mar-tech-clevertap", editable = "packages/agents/clevertap" },
+    { name = "play-c463-z26-rzy-mar-tech-common", editable = "packages/agents/common" },
     { name = "play-c463-z26-rzy-mar-tech-databricks", editable = "packages/agents/databricks" },
     { name = "play-c463-z26-rzy-mar-tech-marketer", editable = "packages/agents/marketer" },
     { name = "play-c463-z26-rzy-mar-tech-talonone", editable = "packages/agents/talonone" },
@@ -2486,6 +2489,7 @@ dependencies = [
     { name = "boto3" },
     { name = "fastapi" },
     { name = "mcp" },
+    { name = "play-c463-z26-rzy-mar-tech-common" },
     { name = "strands-agents", extra = ["a2a"] },
     { name = "strands-agents-tools" },
     { name = "uvicorn" },
@@ -2503,6 +2507,7 @@ requires-dist = [
     { name = "boto3", specifier = "==1.42.54" },
     { name = "fastapi", specifier = "==0.128.5" },
     { name = "mcp", specifier = "==1.26.0" },
+    { name = "play-c463-z26-rzy-mar-tech-common", editable = "packages/agents/common" },
     { name = "strands-agents", extras = ["a2a"], specifier = "==1.28.0" },
     { name = "strands-agents-tools", specifier = "==0.2.21" },
     { name = "uvicorn", specifier = "==0.40.0" },
@@ -2510,6 +2515,29 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [{ name = "fastapi", extras = ["standard"], specifier = "==0.128.5" }]
+
+[[package]]
+name = "play-c463-z26-rzy-mar-tech-common"
+version = "1.0.0"
+source = { editable = "packages/agents/common" }
+dependencies = [
+    { name = "boto3" },
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "mcp" },
+    { name = "strands-agents", extra = ["a2a"] },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "boto3", specifier = "==1.42.54" },
+    { name = "fastapi", specifier = "==0.128.5" },
+    { name = "httpx", specifier = ">=0.27.0" },
+    { name = "mcp", specifier = "==1.26.0" },
+    { name = "strands-agents", extras = ["a2a"], specifier = "==1.28.0" },
+    { name = "uvicorn", specifier = "==0.40.0" },
+]
 
 [[package]]
 name = "play-c463-z26-rzy-mar-tech-databricks"
@@ -2522,6 +2550,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
     { name = "mcp" },
+    { name = "play-c463-z26-rzy-mar-tech-common" },
     { name = "strands-agents", extra = ["a2a"] },
     { name = "strands-agents-tools" },
     { name = "uvicorn" },
@@ -2540,6 +2569,7 @@ requires-dist = [
     { name = "fastapi", specifier = "==0.128.5" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "mcp", specifier = "==1.26.0" },
+    { name = "play-c463-z26-rzy-mar-tech-common", editable = "packages/agents/common" },
     { name = "strands-agents", extras = ["a2a"], specifier = "==1.28.0" },
     { name = "strands-agents-tools", specifier = "==0.2.21" },
     { name = "uvicorn", specifier = "==0.40.0" },
@@ -2607,6 +2637,7 @@ dependencies = [
     { name = "boto3" },
     { name = "fastapi" },
     { name = "mcp" },
+    { name = "play-c463-z26-rzy-mar-tech-common" },
     { name = "strands-agents", extra = ["a2a"] },
     { name = "strands-agents-tools" },
     { name = "uvicorn" },
@@ -2624,6 +2655,7 @@ requires-dist = [
     { name = "boto3", specifier = "==1.42.54" },
     { name = "fastapi", specifier = "==0.128.5" },
     { name = "mcp", specifier = "==1.26.0" },
+    { name = "play-c463-z26-rzy-mar-tech-common", editable = "packages/agents/common" },
     { name = "strands-agents", extras = ["a2a"], specifier = "==1.28.0" },
     { name = "strands-agents-tools", specifier = "==0.2.21" },
     { name = "uvicorn", specifier = "==0.40.0" },

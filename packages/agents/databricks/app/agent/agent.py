@@ -1,16 +1,15 @@
 import os
 
+from common.gateway import get_gateway_mcp_client
 from strands import Agent
 from strands_tools import current_time
-
-from .gateway_mcp_client import get_gateway_mcp_client
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 
 
 def get_databricks_agent() -> Agent:
     """Create a Databricks agent with gateway tools for A2A serving."""
-    mcp_client = get_gateway_mcp_client()
+    mcp_client = get_gateway_mcp_client("databricks-target")
 
     return Agent(
         name="Databricks Agent",

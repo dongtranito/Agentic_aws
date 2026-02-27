@@ -1,37 +1,14 @@
 import logging
-import os
 
-import uvicorn
-from fastapi import FastAPI
-from strands.multiagent.a2a import A2AServer
+from common.a2a_server import create_a2a_app
 
 from .agent import get_talonone_agent
 
 logging.basicConfig(level=logging.INFO)
 
-runtime_url = os.environ.get("AGENTCORE_RUNTIME_URL", "http://127.0.0.1:9000/")
-
-logging.info(f"Runtime URL: {runtime_url}")
-
-strands_agent = get_talonone_agent()
-
-host, port = "0.0.0.0", 9000
-
-a2a_server = A2AServer(
-    agent=strands_agent,
-    http_url=runtime_url,
-    serve_at_root=True,
-)
-
-app = FastAPI()
-
-
-@app.get("/ping")
-def ping():
-    return {"status": "healthy"}
-
-
-app.mount("/", a2a_server.to_fastapi_app())
+app = create_a2a_app(get_talonone_agent)
 
 if __name__ == "__main__":
-    uvicorn.run(app, host=host, port=port)
+    from common.a2a_server import run_a2a_server
+
+    run_a2a_server(get_talonone_agent)
