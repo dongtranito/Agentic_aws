@@ -34,7 +34,6 @@ export class AgentConstruct extends Construct {
     // Deploy individual agents
     const databricks = new DatabricksAgentConstruct(this, 'Databricks', {
       gateway,
-      sessionsBucket,
     });
 
     const clevertap = new ClevertapAgentConstruct(this, 'Clevertap', {
