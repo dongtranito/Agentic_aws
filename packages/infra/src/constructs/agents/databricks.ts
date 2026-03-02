@@ -1,10 +1,12 @@
 import { DatabricksAgent } from ':play-c463-z26-rzy-mar-tech/common-constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as agentcore from '@aws-cdk/aws-bedrock-agentcore-alpha';
 import { Construct } from 'constructs';
 
 export interface DatabricksAgentConstructProps {
   gateway: agentcore.Gateway;
+  sessionsBucket: s3.IBucket;
 }
 
 export class DatabricksAgentConstruct extends Construct {
@@ -18,7 +20,7 @@ export class DatabricksAgentConstruct extends Construct {
   ) {
     super(scope, id);
 
-    const { gateway } = props;
+    const { gateway, sessionsBucket } = props;
 
     this.executionRole = new iam.Role(this, 'Role', {
       assumedBy: new iam.ServicePrincipal('bedrock-agentcore.amazonaws.com'),
@@ -41,11 +43,13 @@ export class DatabricksAgentConstruct extends Construct {
     });
 
     gateway.grantInvoke(this.executionRole);
+    sessionsBucket.grantReadWrite(this.executionRole);
 
     this.agent = new DatabricksAgent(this, 'Agent', {
       executionRole: this.executionRole,
       environmentVariables: {
         GATEWAY_URL: gateway.gatewayUrl ?? '',
+        ARTIFACT_BUCKET: sessionsBucket.bucketName,
       },
     });
   }

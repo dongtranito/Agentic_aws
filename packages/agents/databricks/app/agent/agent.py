@@ -2,14 +2,22 @@ import os
 
 from common.gateway import get_gateway_mcp_client
 from strands import Agent
+from strands.session import S3SessionManager
 from strands_tools import current_time
 
 REGION = os.environ.get("AWS_REGION", "us-east-1")
+ARTIFACT_BUCKET = os.environ["ARTIFACT_BUCKET"]
 
 
 def get_databricks_agent() -> Agent:
     """Create a Databricks agent with gateway tools for A2A serving."""
     mcp_client = get_gateway_mcp_client("databricks-target")
+
+    session_manager = S3SessionManager(
+        session_id="databricks-agent",
+        bucket=ARTIFACT_BUCKET,
+        region_name=REGION,
+    )
 
     return Agent(
         name="Databricks Agent",
@@ -38,5 +46,6 @@ Workflow guidelines:
 6. Always explain what you're doing and interpret the results clearly.
 """,
         tools=[current_time, mcp_client],
+        session_manager=session_manager,
         callback_handler=None,
     )

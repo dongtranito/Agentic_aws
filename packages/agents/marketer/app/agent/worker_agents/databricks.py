@@ -1,5 +1,3 @@
-import asyncio
-
 from strands import tool
 
 from ..utils.a2a import invoke_a2a_agent
@@ -21,6 +19,6 @@ def build_databricks_tool(agent_runtime_arn: str, region: str):
         Args:
             request: A natural language description of the data task.
         """
-        return asyncio.run(invoke_a2a_agent(agent_runtime_arn, region, request))
+        return invoke_a2a_agent(agent_runtime_arn, region, request)
 
     return query_databricks
