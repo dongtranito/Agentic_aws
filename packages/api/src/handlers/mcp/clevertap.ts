@@ -90,28 +90,29 @@ function buildWhereClause(
   return where;
 }
 
-/** POST /1/targets/create.json with estimate_only=true */
-async function createDraftCampaign(
+/**
+ * Builds the common campaign payload from tool args.
+ * Returns null + error if required fields are missing.
+ */
+function buildCampaignPayload(
   args: Record<string, unknown>,
-): Promise<unknown> {
+  estimateOnly: boolean,
+): { payload: Record<string, unknown> } | { error: string } {
   const { name, target_mode, content } = args;
   if (!name || !target_mode || !content) {
-    return {
-      status: 'fail',
-      error: 'name, target_mode, and content are required',
-    };
+    return { error: 'name, target_mode, and content are required' };
   }
 
   const payload: Record<string, unknown> = {
     name,
     target_mode,
     content,
-    estimate_only: true,
+    estimate_only: estimateOnly,
     when: args.when ?? 'now',
     respect_frequency_caps: false,
   };
 
-  // Build where clause from user_property_filters if provided
+  // Audience targeting
   const filters = args.user_property_filters as ProfileFilter[] | undefined;
   const eventFilter = args.event_filter as Record<string, unknown> | undefined;
 
@@ -136,7 +137,32 @@ async function createDraftCampaign(
   if (args.webhook_key_value)
     payload.webhook_key_value = args.webhook_key_value;
 
-  return ctFetch('/1/targets/create.json', payload);
+  return { payload };
+}
+
+/** POST /1/targets/create.json with estimate_only=true */
+async function createDraftCampaign(
+  args: Record<string, unknown>,
+): Promise<unknown> {
+  const result = buildCampaignPayload(args, true);
+  if ('error' in result) return { status: 'fail', error: result.error };
+  return ctFetch('/1/targets/create.json', result.payload);
+}
+
+/** POST /1/targets/create.json with estimate_only=false */
+async function confirmDraftCampaign(
+  args: Record<string, unknown>,
+): Promise<unknown> {
+  const result = buildCampaignPayload(args, false);
+  if ('error' in result) return { status: 'fail', error: result.error };
+  return ctFetch('/1/targets/create.json', result.payload);
+}
+
+/** POST /1/targets/create.json with estimate_only=true (re-validate) */
+async function updateDraftCampaign(
+  args: Record<string, unknown>,
+): Promise<unknown> {
+  return createDraftCampaign(args);
 }
 
 /** POST /1/targets/list.json */
@@ -164,13 +190,6 @@ async function getDraftCampaign(
   return ctFetch('/1/targets/result.json', { id: campaign_id });
 }
 
-/** POST /1/targets/create.json with estimate_only=true (re-validate with updates) */
-async function updateDraftCampaign(
-  args: Record<string, unknown>,
-): Promise<unknown> {
-  return createDraftCampaign(args);
-}
-
 /** POST /1/targets/stop.json */
 async function discardDraftCampaign(
   args: Record<string, unknown>,
@@ -190,6 +209,7 @@ type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
 
 const toolRegistry: Record<string, ToolHandler> = {
   create_draft_campaign: createDraftCampaign,
+  confirm_draft_campaign: confirmDraftCampaign,
   list_draft_campaigns: listDraftCampaigns,
   get_draft_campaign: getDraftCampaign,
   update_draft_campaign: updateDraftCampaign,

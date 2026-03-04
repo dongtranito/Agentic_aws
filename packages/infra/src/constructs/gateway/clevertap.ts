@@ -61,6 +61,7 @@ export class ClevertapTarget extends Construct {
 
     const T = agentcore.SchemaDefinitionType;
 
+    // Shared sub-schemas
     const userPropertyFilterSchema = {
       type: T.OBJECT,
       description: 'A user property filter: { name, operator, value }',
@@ -68,7 +69,7 @@ export class ClevertapTarget extends Construct {
         name: {
           type: T.STRING,
           description:
-            'Profile property name (e.g. telco_provider, engagement_status, propensity_savings_account)',
+            'Profile property name (e.g. telco_provider, engagement_status)',
         },
         operator: {
           type: T.STRING,
@@ -98,68 +99,88 @@ export class ClevertapTarget extends Construct {
       required: ['event_name', 'from', 'to'],
     };
 
+    // Shared campaign properties used by create, confirm, and update tools
+    const campaignProperties = {
+      name: { type: T.STRING, description: 'Campaign name' },
+      target_mode: {
+        type: T.STRING,
+        description: 'Channel: push, email, sms, webpush, whatsapp, or webhook',
+      },
+      content: {
+        type: T.OBJECT,
+        description:
+          'Message content. push: {title, body}. email: {subject, body, sender_name}. sms: {body}.',
+      },
+      user_property_filters: {
+        type: T.ARRAY,
+        description: 'User property filters to define the target audience.',
+        items: userPropertyFilterSchema,
+      },
+      event_filter: eventFilterSchema,
+      segment: {
+        type: T.INTEGER,
+        description: 'Segment ID to target instead of filters.',
+      },
+      when: {
+        type: T.STRING,
+        description: '"now" or "YYYYMMDD HH:MM". Defaults to "now".',
+      },
+      provider_nick_name: {
+        type: T.STRING,
+        description: 'Required for email, sms, or whatsapp.',
+      },
+      labels: { type: T.ARRAY, description: 'Optional labels.' },
+      webhook_endpoint_name: {
+        type: T.STRING,
+        description: 'Required for webhook campaigns.',
+      },
+      webhook_fields: {
+        type: T.ARRAY,
+        description:
+          'For webhook. Fields to include: profile-attributes, tokens, identities.',
+      },
+      webhook_key_value: {
+        type: T.OBJECT,
+        description: 'Optional webhook key-value pairs.',
+      },
+    };
+
+    const campaignRequired = [
+      'name',
+      'target_mode',
+      'content',
+      'user_property_filters',
+    ];
+
     const toolSchema = agentcore.ToolSchema.fromInline([
       {
         name: 'create_draft_campaign',
         description:
-          'Validate a campaign in CleverTap using estimate_only=true. Returns estimated reach without sending. Use user_property_filters to target users by their profile properties.',
+          'Validate a campaign in CleverTap (estimate_only=true). Returns estimated reach without sending.',
         inputSchema: {
           type: T.OBJECT,
-          properties: {
-            name: {
-              type: T.STRING,
-              description: 'Campaign name shown in the CleverTap dashboard',
-            },
-            target_mode: {
-              type: T.STRING,
-              description:
-                'Channel: push, email, sms, webpush, whatsapp, or webhook',
-            },
-            content: {
-              type: T.OBJECT,
-              description:
-                'Message content. push: {title, body}. email: {subject, body, sender_name}. sms: {body}.',
-            },
-            user_property_filters: {
-              type: T.ARRAY,
-              description:
-                'List of user property filters to define the target audience.',
-              items: userPropertyFilterSchema,
-            },
-            event_filter: eventFilterSchema,
-            segment: {
-              type: T.INTEGER,
-              description: 'Segment ID to target instead of filters.',
-            },
-            when: {
-              type: T.STRING,
-              description: '"now" or "YYYYMMDD HH:MM". Defaults to "now".',
-            },
-            provider_nick_name: {
-              type: T.STRING,
-              description: 'Required for email, sms, or whatsapp.',
-            },
-            labels: {
-              type: T.ARRAY,
-              description: 'Optional labels to tag the campaign.',
-            },
-            webhook_endpoint_name: {
-              type: T.STRING,
-              description:
-                'Required for webhook campaigns. The webhook endpoint name configured in CleverTap.',
-            },
-            webhook_fields: {
-              type: T.ARRAY,
-              description:
-                'Optional for webhook. Fields to include: profile-attributes, tokens, identities.',
-            },
-            webhook_key_value: {
-              type: T.OBJECT,
-              description:
-                'Optional for webhook. Custom key-value pairs to send.',
-            },
-          },
-          required: ['name', 'target_mode', 'content', 'user_property_filters'],
+          properties: campaignProperties,
+          required: campaignRequired,
+        },
+      },
+      {
+        name: 'confirm_draft_campaign',
+        description:
+          'Create the campaign in CleverTap (estimate_only=false). If Campaign Approval is enabled, it enters Pending Approval. Use after the user reviews the estimate.',
+        inputSchema: {
+          type: T.OBJECT,
+          properties: campaignProperties,
+          required: campaignRequired,
+        },
+      },
+      {
+        name: 'update_draft_campaign',
+        description:
+          'Re-validate a campaign with updated fields (estimate_only=true).',
+        inputSchema: {
+          type: T.OBJECT,
+          properties: campaignProperties,
+          required: campaignRequired,
         },
       },
       {
@@ -188,45 +209,6 @@ export class ClevertapTarget extends Construct {
             },
           },
           required: ['campaign_id'],
-        },
-      },
-      {
-        name: 'update_draft_campaign',
-        description:
-          'Re-validate a campaign with updated fields using estimate_only=true.',
-        inputSchema: {
-          type: T.OBJECT,
-          properties: {
-            name: { type: T.STRING, description: 'Campaign name.' },
-            target_mode: { type: T.STRING, description: 'Channel type.' },
-            content: { type: T.OBJECT, description: 'Updated content.' },
-            user_property_filters: {
-              type: T.ARRAY,
-              description: 'Updated user property filters.',
-              items: userPropertyFilterSchema,
-            },
-            event_filter: eventFilterSchema,
-            segment: { type: T.INTEGER, description: 'Updated segment ID.' },
-            when: { type: T.STRING, description: 'Updated schedule.' },
-            provider_nick_name: {
-              type: T.STRING,
-              description: 'Updated provider.',
-            },
-            labels: { type: T.ARRAY, description: 'Updated labels.' },
-            webhook_endpoint_name: {
-              type: T.STRING,
-              description: 'Updated webhook endpoint name.',
-            },
-            webhook_fields: {
-              type: T.ARRAY,
-              description: 'Updated webhook fields.',
-            },
-            webhook_key_value: {
-              type: T.OBJECT,
-              description: 'Updated webhook key-value pairs.',
-            },
-          },
-          required: ['name', 'target_mode', 'content', 'user_property_filters'],
         },
       },
       {
