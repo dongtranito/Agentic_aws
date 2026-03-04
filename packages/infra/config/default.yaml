@@ -6,3 +6,7 @@ deploymentConfig:
     databricks:
       token: ''
       url: ''
+    clevertap:
+      projectId: ''
+      passcode: ''
+      region: ''

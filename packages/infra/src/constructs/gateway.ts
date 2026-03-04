@@ -53,6 +53,9 @@ export class GatewayConstruct extends Construct {
     this.clevertap = new ClevertapTarget(this, 'Clevertap', {
       gateway: this.gateway,
       bundlePath,
+      clevertapProjectId: mcpConfig.clevertap.projectId,
+      clevertapPasscode: mcpConfig.clevertap.passcode,
+      clevertapRegion: mcpConfig.clevertap.region,
     });
 
     this.talonOne = new TalonOneTarget(this, 'TalonOne', {

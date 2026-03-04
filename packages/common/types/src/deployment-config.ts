@@ -14,6 +14,11 @@ export const McpConfigSchema = z.object({
     token: z.string(),
     url: z.string(),
   }),
+  clevertap: z.object({
+    projectId: z.string(),
+    passcode: z.string(),
+    region: z.string(),
+  }),
 });
 
 export const DeploymentConfigSchema = z.object({
