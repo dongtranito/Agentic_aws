@@ -21,6 +21,7 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
     """
     with get_agent(session_id=session_id, actor_id=actor_id) as agent:
         pending_tool: dict | None = None
+        last_tool_names: dict[str, str] = {}  # toolUseId -> tool_name
         stream = agent.stream_async(prompt)
 
         def flush_pending_tool():
@@ -59,6 +60,7 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
                     "name": tool_name,
                     "input": raw_input,
                 }
+                last_tool_names[tool_use.get("toolUseId", "")] = tool_name
                 continue
 
             # Any non-tool event: flush pending tool first
@@ -87,16 +89,22 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
                 for block in msg.get("content", []):
                     if "toolResult" in block:
                         tr = block["toolResult"]
-                        # Resolve tool name from toolUseId
-                        tool_name = "unknown"
-                        raw_tool_name = ""
-                        for b in msg.get("content", []):
-                            tu = b.get("toolUse")
-                            if tu and tu.get("toolUseId") == tr.get("toolUseId"):
-                                raw_tool_name = tu.get("name", "")
-                                break
-                        if raw_tool_name:
-                            tool_name = raw_tool_name.split("___", 1)[-1] if "___" in raw_tool_name else raw_tool_name
+                        # Resolve tool name from tracked names or message
+                        tool_use_id = tr.get("toolUseId", "")
+                        tool_name = last_tool_names.get(tool_use_id, "")
+                        if not tool_name:
+                            raw_tool_name = ""
+                            for b in msg.get("content", []):
+                                tu = b.get("toolUse")
+                                if tu and tu.get("toolUseId") == tool_use_id:
+                                    raw_tool_name = tu.get("name", "")
+                                    break
+                            if raw_tool_name:
+                                tool_name = (
+                                    raw_tool_name.split("___", 1)[-1] if "___" in raw_tool_name else raw_tool_name
+                                )
+                            else:
+                                tool_name = "tool"
                         output = ""
                         for c in tr.get("content", []):
                             if "text" in c:

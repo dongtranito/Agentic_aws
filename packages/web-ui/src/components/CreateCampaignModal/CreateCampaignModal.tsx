@@ -88,6 +88,7 @@ export const CreateCampaignModal = ({
             onKeyDown={handleKeyDown}
             placeholder="Enter campaign name"
             disabled={loading}
+            autoFocus
           />
         </FormField>
       </SpaceBetween>

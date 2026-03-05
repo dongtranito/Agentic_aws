@@ -98,39 +98,60 @@ def build_a2a_agent(
 
 
 def _extract_text_from_event(event: dict) -> str | None:
-    """Extract text content from an A2A stream event."""
+    """Extract text content from an A2A stream event.
+
+    A2A stream events have type='a2a_stream' with an 'event' key
+    containing a tuple of (Task, UpdateEvent). The UpdateEvent can be
+    a TaskArtifactUpdateEvent (with artifact.parts containing text)
+    or a TaskStatusUpdateEvent (with status.message.parts).
+    """
+    # Final result event from Strands
     if "result" in event:
         content = event["result"].message.get("content", [])
         texts = [part["text"] for part in content if "text" in part]
         if texts:
             return "\n".join(texts)
-    elif event.get("type") == "a2a_stream" and "data" in event:
-        return event["data"]
 
-    # Try to extract from nested A2A event structure
+    # A2A stream events: tuple of (Task, UpdateEvent)
     a2a_event = event.get("event")
-    if a2a_event and isinstance(a2a_event, tuple) and len(a2a_event) >= 2:
-        update = a2a_event[1]
-        if update and hasattr(update, "artifact"):
-            artifact = update.artifact
-            if hasattr(artifact, "parts"):
+    if not isinstance(a2a_event, tuple) or len(a2a_event) < 2:
+        return None
+
+    update = a2a_event[1]
+    if update is None:
+        return None
+
+    # Try TaskArtifactUpdateEvent — has artifact.parts
+    artifact = getattr(update, "artifact", None)
+    if artifact is not None:
+        parts = getattr(artifact, "parts", None)
+        if parts:
+            texts = []
+            for part in parts:
+                # Part wraps the actual content in .root
+                root = getattr(part, "root", part)
+                text = getattr(root, "text", None)
+                if text:
+                    texts.append(text)
+            if texts:
+                return "".join(texts)
+
+    # Try TaskStatusUpdateEvent — has status.message.parts
+    status = getattr(update, "status", None)
+    if status is not None:
+        message = getattr(status, "message", None)
+        if message is not None:
+            parts = getattr(message, "parts", None)
+            if parts:
                 texts = []
-                for part in artifact.parts:
-                    if hasattr(part, "text") and part.text:
-                        texts.append(part.text)
+                for part in parts:
+                    root = getattr(part, "root", part)
+                    text = getattr(root, "text", None)
+                    if text:
+                        texts.append(text)
                 if texts:
                     return "".join(texts)
-        if update and hasattr(update, "status"):
-            status = update.status
-            if hasattr(status, "message") and status.message:
-                msg = status.message
-                if hasattr(msg, "parts"):
-                    texts = []
-                    for part in msg.parts:
-                        if hasattr(part, "text") and part.text:
-                            texts.append(part.text)
-                    if texts:
-                        return "".join(texts)
+
     return None
 
 

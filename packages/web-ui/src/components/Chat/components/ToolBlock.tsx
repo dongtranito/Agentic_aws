@@ -5,12 +5,15 @@ import {
   StatusIndicator,
 } from '@cloudscape-design/components';
 import { CodeView } from '@cloudscape-design/code-view';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ToolOutput } from './ToolOutput';
 import type { ContentBlock } from '../types';
 
 interface ToolBlockProps {
   name: string;
   input?: Record<string, unknown>;
+  progress?: string;
   result?: ContentBlock & { type: 'tool_result' };
   isFinalized?: boolean;
 }
@@ -18,6 +21,7 @@ interface ToolBlockProps {
 export const ToolBlock = ({
   name,
   input,
+  progress,
   result,
   isFinalized,
 }: ToolBlockProps) => {
@@ -53,6 +57,18 @@ export const ToolBlock = ({
                 }
                 wrapLines
               />
+            </Box>
+          )}
+          {progress && !result && (
+            <Box>
+              <Box fontSize="body-s" fontWeight="bold">
+                Agent Logs
+              </Box>
+              <div className="markdown-content">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {progress}
+                </ReactMarkdown>
+              </div>
             </Box>
           )}
           {result && (

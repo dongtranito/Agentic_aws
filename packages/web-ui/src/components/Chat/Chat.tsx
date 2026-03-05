@@ -8,6 +8,7 @@ import {
   PromptInput,
   Spinner,
 } from '@cloudscape-design/components';
+import type { PromptInputProps } from '@cloudscape-design/components/prompt-input';
 import ChatBubble from '@cloudscape-design/chat-components/chat-bubble';
 import Avatar from '@cloudscape-design/chat-components/avatar';
 import LoadingBar from '@cloudscape-design/chat-components/loading-bar';
@@ -31,6 +32,7 @@ export const Chat = ({ campaignId }: ChatProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const blocksRef = useRef<ContentBlock[]>([]);
   const sseBufferRef = useRef('');
+  const promptRef = useRef<PromptInputProps.Ref>(null);
   const api = useApi();
 
   const scrollToBottom = useCallback(() => {
@@ -59,6 +61,12 @@ export const Chat = ({ campaignId }: ChatProps) => {
     loadHistory();
   }, [campaignId, api.chat]);
 
+  useEffect(() => {
+    if (!isLoadingHistory) {
+      promptRef.current?.focus();
+    }
+  }, [isLoadingHistory]);
+
   const appendBlock = (block: ContentBlock) => {
     const blocks = blocksRef.current;
     const last = blocks[blocks.length - 1];
@@ -71,17 +79,25 @@ export const Chat = ({ campaignId }: ChatProps) => {
       last.name === block.name
     ) {
       last.input = block.input;
-    } else if (
-      block.type === 'subagent_progress' &&
-      last?.type === 'subagent_progress' &&
-      last.agent === block.agent
-    ) {
-      last.content = block.content;
     } else {
       blocks.push(block);
     }
     blocksRef.current = [...blocks];
     setStreamingBlocks(blocksRef.current);
+  };
+
+  const appendSubagentProgress = (agent: string, content: string) => {
+    const blocks = blocksRef.current;
+    // Find the last tool_use block to attach progress to
+    for (let i = blocks.length - 1; i >= 0; i--) {
+      if (blocks[i].type === 'tool_use') {
+        const toolBlock = blocks[i] as ContentBlock & { type: 'tool_use' };
+        toolBlock.progress = (toolBlock.progress ?? '') + content;
+        blocksRef.current = [...blocks];
+        setStreamingBlocks(blocksRef.current);
+        return;
+      }
+    }
   };
 
   const handleSend = async () => {
@@ -123,11 +139,7 @@ export const Chat = ({ campaignId }: ChatProps) => {
                   output: event.output,
                 });
               } else if (event.type === 'subagent_progress') {
-                appendBlock({
-                  type: 'subagent_progress',
-                  agent: event.agent,
-                  content: event.content,
-                });
+                appendSubagentProgress(event.agent, event.content);
               }
             } catch {
               // Not valid JSON — ignore
@@ -136,7 +148,14 @@ export const Chat = ({ campaignId }: ChatProps) => {
         },
       );
 
-      const finalBlocks = blocksRef.current;
+      const finalBlocks = blocksRef.current.map((b) => {
+        if (b.type === 'tool_use') {
+          // Strip progress from finalized blocks — it's ephemeral
+          const { progress: _, ...rest } = b;
+          return rest;
+        }
+        return b;
+      });
       if (finalBlocks.length > 0) {
         const textContent = finalBlocks
           .filter(
@@ -166,9 +185,8 @@ export const Chat = ({ campaignId }: ChatProps) => {
   };
 
   const hasStreamingContent = streamingBlocks.length > 0;
-  const isToolActive =
-    hasStreamingContent &&
-    streamingBlocks[streamingBlocks.length - 1]?.type === 'tool_use';
+  const lastBlockType = streamingBlocks[streamingBlocks.length - 1]?.type;
+  const isToolActive = hasStreamingContent && lastBlockType === 'tool_use';
 
   return (
     <Container header={<Header>Chat</Header>}>
@@ -267,6 +285,7 @@ export const Chat = ({ campaignId }: ChatProps) => {
         </LiveRegion>
         {isLoading && <LoadingBar variant="gen-ai" />}
         <PromptInput
+          ref={promptRef}
           value={input}
           onChange={({ detail }) => setInput(detail.value)}
           onAction={handleSend}
