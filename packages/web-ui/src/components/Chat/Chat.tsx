@@ -71,6 +71,12 @@ export const Chat = ({ campaignId }: ChatProps) => {
       last.name === block.name
     ) {
       last.input = block.input;
+    } else if (
+      block.type === 'subagent_progress' &&
+      last?.type === 'subagent_progress' &&
+      last.agent === block.agent
+    ) {
+      last.content = block.content;
     } else {
       blocks.push(block);
     }
@@ -115,6 +121,12 @@ export const Chat = ({ campaignId }: ChatProps) => {
                   name: event.name,
                   status: event.status,
                   output: event.output,
+                });
+              } else if (event.type === 'subagent_progress') {
+                appendBlock({
+                  type: 'subagent_progress',
+                  agent: event.agent,
+                  content: event.content,
                 });
               }
             } catch {

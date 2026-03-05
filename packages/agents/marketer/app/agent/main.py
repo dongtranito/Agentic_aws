@@ -7,6 +7,7 @@ from fastapi.responses import PlainTextResponse, StreamingResponse
 
 from .agent import get_agent
 from .init import app
+from .utils.a2a import SubAgentProgress
 
 
 async def handle_invoke(prompt: str, session_id: str, actor_id: str):
@@ -16,6 +17,7 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
       - data: {"type":"text","content":"..."} for text chunks
       - data: {"type":"tool_use","name":"...","input":{...}} when a tool starts
       - data: {"type":"tool_result","name":"...","output":"..."} when a tool completes
+      - data: {"type":"subagent_progress","agent":"...","content":"..."} for subagent streaming
     """
     with get_agent(session_id=session_id, actor_id=actor_id) as agent:
         pending_tool: dict | None = None
@@ -63,6 +65,21 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
             flushed = flush_pending_tool()
             if flushed:
                 yield flushed
+
+            # Subagent streaming progress via tool_stream_event
+            tool_stream = event.get("tool_stream_event")
+            if tool_stream:
+                data = tool_stream.get("data")
+                if isinstance(data, SubAgentProgress):
+                    evt = json.dumps(
+                        {
+                            "type": "subagent_progress",
+                            "agent": data.agent_name,
+                            "content": data.content,
+                        }
+                    )
+                    yield f"data: {evt}\n\n"
+                    continue
 
             # Complete message — check for tool results
             msg = event.get("message")

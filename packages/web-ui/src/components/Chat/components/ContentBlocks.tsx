@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { StatusIndicator } from '@cloudscape-design/components';
 import { ToolBlock } from './ToolBlock';
 import type { ContentBlock } from '../types';
 
@@ -58,6 +59,18 @@ export const ContentBlocks = ({ blocks, isFinalized }: ContentBlocksProps) => {
           result={block}
           isFinalized={isFinalized}
         />,
+      );
+      i++;
+    } else if (block.type === 'subagent_progress') {
+      elements.push(
+        <div key={i} className="subagent-progress">
+          <StatusIndicator type="in-progress">{block.agent}</StatusIndicator>
+          <div className="markdown-content">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {block.content}
+            </ReactMarkdown>
+          </div>
+        </div>,
       );
       i++;
     } else {

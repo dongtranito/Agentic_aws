@@ -8,6 +8,8 @@ Reference: https://strandsagents.com/latest/documentation/docs/user-guide/concep
 """
 
 import logging
+from collections.abc import AsyncIterator
+from dataclasses import dataclass
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -15,11 +17,19 @@ import boto3
 import httpx
 from a2a.client import ClientConfig, ClientFactory
 from a2a.types import AgentCard
-from strands.agent.a2a_agent import A2AAgent, run_async
+from strands.agent.a2a_agent import A2AAgent
 
 from .sigv4_auth import SigV4HTTPXAuth
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class SubAgentProgress:
+    """Intermediate progress event from a subagent."""
+
+    agent_name: str
+    content: str
 
 
 def _build_endpoint_url(agent_runtime_arn: str, region: str) -> str:
@@ -28,8 +38,11 @@ def _build_endpoint_url(agent_runtime_arn: str, region: str) -> str:
     return f"https://bedrock-agentcore.{region}.amazonaws.com/runtimes/{encoded_arn}/invocations/"
 
 
-def _get_agent_card(agent_runtime_arn: str, region: str) -> AgentCard:
-    """Fetch agent card via boto3 SDK (avoids HTTP auth issues on card fetch)."""
+def _get_agent_card(
+    agent_runtime_arn: str,
+    region: str,
+) -> AgentCard:
+    """Fetch agent card via boto3 SDK."""
     client = boto3.client("bedrock-agentcore", region_name=region)
     response = client.get_agent_card(agentRuntimeArn=agent_runtime_arn)
     card_dict = response.get("agentCard", {})
@@ -38,8 +51,11 @@ def _get_agent_card(agent_runtime_arn: str, region: str) -> AgentCard:
     return AgentCard(**card_dict)
 
 
-def _build_client_factory(region: str, session_id: str) -> ClientFactory:
-    """Build an A2A ClientFactory with SigV4 auth for AgentCore Runtime."""
+def _build_client_factory(
+    region: str,
+    session_id: str,
+) -> ClientFactory:
+    """Build an A2A ClientFactory with SigV4 auth."""
     session = boto3.Session()
     credentials = session.get_credentials()
     auth = SigV4HTTPXAuth(credentials, region)
@@ -47,27 +63,24 @@ def _build_client_factory(region: str, session_id: str) -> ClientFactory:
     headers = {
         "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id": session_id,
     }
-    httpx_client = httpx.AsyncClient(timeout=300, auth=auth, headers=headers)
+    httpx_client = httpx.AsyncClient(
+        timeout=300,
+        auth=auth,
+        headers=headers,
+    )
 
     config = ClientConfig(httpx_client=httpx_client, streaming=True)
     return ClientFactory(config)
 
 
-def build_a2a_agent(agent_runtime_arn: str, region: str) -> A2AAgent:
-    """Build a Strands A2AAgent for an AgentCore Runtime endpoint.
-
-    Uses boto3 for agent card discovery (AgentCore returns 403 on HTTP
-    card fetch) and a custom ClientFactory with SigV4 auth for the
-    actual A2A JSON-RPC communication.
-    """
+def build_a2a_agent(
+    agent_runtime_arn: str,
+    region: str,
+) -> A2AAgent:
+    """Build a Strands A2AAgent for an AgentCore Runtime endpoint."""
     endpoint_url = _build_endpoint_url(agent_runtime_arn, region)
-
-    # Ensure session ID is >= 33 characters (AgentCore requirement)
     session_id = uuid4().hex + "-" + uuid4().hex[:8]
-
     client_factory = _build_client_factory(region, session_id)
-
-    # Fetch agent card via boto3 (not HTTP)
     agent_card = _get_agent_card(agent_runtime_arn, region)
 
     a2a_agent = A2AAgent(
@@ -78,37 +91,71 @@ def build_a2a_agent(agent_runtime_arn: str, region: str) -> A2AAgent:
         timeout=300,
     )
 
-    # Pre-populate the cached agent card so A2AAgent skips HTTP-based
-    # card resolution (which would fail with 403 on AgentCore).
+    # Pre-populate cached agent card to skip HTTP-based card resolution.
     a2a_agent._agent_card = agent_card
 
     return a2a_agent
 
 
-def invoke_a2a_agent(
+def _extract_text_from_event(event: dict) -> str | None:
+    """Extract text content from an A2A stream event."""
+    if "result" in event:
+        content = event["result"].message.get("content", [])
+        texts = [part["text"] for part in content if "text" in part]
+        if texts:
+            return "\n".join(texts)
+    elif event.get("type") == "a2a_stream" and "data" in event:
+        return event["data"]
+
+    # Try to extract from nested A2A event structure
+    a2a_event = event.get("event")
+    if a2a_event and isinstance(a2a_event, tuple) and len(a2a_event) >= 2:
+        update = a2a_event[1]
+        if update and hasattr(update, "artifact"):
+            artifact = update.artifact
+            if hasattr(artifact, "parts"):
+                texts = []
+                for part in artifact.parts:
+                    if hasattr(part, "text") and part.text:
+                        texts.append(part.text)
+                if texts:
+                    return "".join(texts)
+        if update and hasattr(update, "status"):
+            status = update.status
+            if hasattr(status, "message") and status.message:
+                msg = status.message
+                if hasattr(msg, "parts"):
+                    texts = []
+                    for part in msg.parts:
+                        if hasattr(part, "text") and part.text:
+                            texts.append(part.text)
+                    if texts:
+                        return "".join(texts)
+    return None
+
+
+async def stream_a2a_agent(
     agent_runtime_arn: str,
     region: str,
     prompt: str,
-) -> str:
-    """Invoke a remote A2A agent on AgentCore Runtime with streaming.
+) -> "AsyncIterator":
+    """Async generator that streams progress from a remote A2A agent.
 
-    Uses A2AAgent.stream_async to consume streamed A2A events, collecting
-    text as it arrives and returning the final assembled response.
+    Yields SubAgentProgress for intermediate updates, then yields
+    the final response string as the last item.
     """
     a2a_agent = build_a2a_agent(agent_runtime_arn, region)
+    agent_name = a2a_agent.name or "subagent"
+    final_text = ""
 
-    async def _stream() -> str:
-        response_text = ""
-        async for event in a2a_agent.stream_async(prompt):
-            if "result" in event:
-                # Final event — extract text from the AgentResult
-                content = event["result"].message.get("content", [])
-                texts = [part["text"] for part in content if "text" in part]
-                if texts:
-                    response_text = "\n".join(texts)
-            elif event.get("type") == "a2a_stream" and "data" in event:
-                # Intermediate streamed text chunk
-                response_text += event["data"]
-        return response_text or "Task completed successfully"
+    async for event in a2a_agent.stream_async(prompt):
+        text = _extract_text_from_event(event)
+        if text:
+            final_text = text
+            yield SubAgentProgress(
+                agent_name=agent_name,
+                content=text,
+            )
 
-    return run_async(lambda: _stream())
+    # Final yield must be a string — this becomes the tool result
+    yield final_text or "Task completed successfully"
