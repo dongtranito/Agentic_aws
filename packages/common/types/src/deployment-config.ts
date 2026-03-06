@@ -24,6 +24,7 @@ export const McpConfigSchema = z.object({
 export const DeploymentConfigSchema = z.object({
   adminUser: AdminUserSchema,
   mcp: McpConfigSchema,
+  parameterPrefix: z.string().default('/martech/agents'),
 });
 export type IAdminUser = z.infer<typeof AdminUserSchema>;
 export type IMcpConfig = z.infer<typeof McpConfigSchema>;

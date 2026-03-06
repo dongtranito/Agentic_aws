@@ -14,6 +14,7 @@ import { TalononeAgentConstruct } from './agents/talonone.js';
 export interface AgentConstructProps {
   gateway: agentcore.Gateway;
   sessionsBucket: s3.IBucket;
+  parameterPrefix: string;
 }
 
 export class AgentConstruct extends Construct {
@@ -23,9 +24,7 @@ export class AgentConstruct extends Construct {
   constructor(scope: Construct, id: string, props: AgentConstructProps) {
     super(scope, id);
 
-    const { gateway, sessionsBucket } = props;
-
-    const parameterPrefix = '/martech/agents';
+    const { gateway, sessionsBucket, parameterPrefix } = props;
 
     // Shared memory
     this.memory = new agentcore.Memory(this, 'MarketerMemory', {

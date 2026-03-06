@@ -34,6 +34,7 @@ export class ApplicationStack extends Stack {
     const agents = new AgentConstruct(this, 'Agents', {
       gateway: gateway.gateway,
       sessionsBucket: storage.sessionsBucket,
+      parameterPrefix: deploymentConfig.parameterPrefix,
     });
     const api = new APIConstruct(this, 'ApiConstruct', {
       userPool: identity.userPool,
@@ -43,6 +44,7 @@ export class ApplicationStack extends Stack {
       sqlResultsBucket: storage.sqlResultsBucket,
       marketerAgent: agents.marketer,
       memory: agents.memory,
+      parameterPrefix: deploymentConfig.parameterPrefix,
     });
 
     const web = new WebUi(this, 'WebUi');

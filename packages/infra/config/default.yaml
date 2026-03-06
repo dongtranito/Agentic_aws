@@ -1,4 +1,5 @@
 deploymentConfig:
+  parameterPrefix: /martech/agents
   adminUser:
     email: admin@email.com
     username: admin

@@ -23,6 +23,7 @@ export interface APIConstructProps {
   readonly sqlResultsBucket: s3.IBucket;
   readonly marketerAgent: MarketerAgent;
   readonly memory: agentcore.Memory;
+  readonly parameterPrefix: string;
 }
 
 const getBundlePath = (handler: string) =>
@@ -46,6 +47,7 @@ export class APIConstruct extends Construct {
       sqlResultsBucket,
       marketerAgent,
       memory,
+      parameterPrefix,
     } = props;
 
     // Lambda for GET /campaign/:id
@@ -186,8 +188,6 @@ export class APIConstruct extends Construct {
         resources: ['*'],
       }),
     );
-
-    const parameterPrefix = `/martech/agents`;
 
     // Lambda for GET /configuration/{agentName}
     const getAgentConfigHandler = new lambda.Function(
