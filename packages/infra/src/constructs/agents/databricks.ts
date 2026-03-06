@@ -1,10 +1,12 @@
 import { DatabricksAgent } from ':play-c463-z26-rzy-mar-tech/common-constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { Stack } from 'aws-cdk-lib';
 import * as agentcore from '@aws-cdk/aws-bedrock-agentcore-alpha';
 import { Construct } from 'constructs';
 
 export interface DatabricksAgentConstructProps {
   gateway: agentcore.Gateway;
+  parameterPrefix: string;
 }
 
 export class DatabricksAgentConstruct extends Construct {
@@ -18,7 +20,7 @@ export class DatabricksAgentConstruct extends Construct {
   ) {
     super(scope, id);
 
-    const { gateway } = props;
+    const { gateway, parameterPrefix } = props;
 
     this.executionRole = new iam.Role(this, 'Role', {
       assumedBy: new iam.ServicePrincipal('bedrock-agentcore.amazonaws.com'),
@@ -35,6 +37,13 @@ export class DatabricksAgentConstruct extends Construct {
               resources: ['*'],
               effect: iam.Effect.ALLOW,
             }),
+            new iam.PolicyStatement({
+              actions: ['ssm:GetParameter'],
+              resources: [
+                `arn:aws:ssm:${Stack.of(this).region}:${Stack.of(this).account}:parameter${parameterPrefix}/*`,
+              ],
+              effect: iam.Effect.ALLOW,
+            }),
           ],
         }),
       },
@@ -46,6 +55,7 @@ export class DatabricksAgentConstruct extends Construct {
       executionRole: this.executionRole,
       environmentVariables: {
         GATEWAY_URL: gateway.gatewayUrl ?? '',
+        AGENT_CONFIG_PARAMETER: `${parameterPrefix}/databricks/config`,
       },
     });
   }

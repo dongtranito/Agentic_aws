@@ -1,5 +1,6 @@
 import os
 
+from common.config import load_configuration
 from common.gateway import get_gateway_mcp_client
 from strands import Agent
 from strands_tools import current_time
@@ -10,6 +11,7 @@ REGION = os.environ.get("AWS_REGION", "us-east-1")
 def get_clevertap_agent() -> Agent:
     """Create a CleverTap agent with gateway tools for A2A serving."""
     mcp_client = get_gateway_mcp_client("clevertap-target")
+    config = load_configuration()
 
     return Agent(
         name="CleverTap Agent",
@@ -41,5 +43,6 @@ Supported channels (target_mode): push, email, sms, webpush, whatsapp, webhook.
 For email/sms/whatsapp, provider_nick_name is required.
 """,
         tools=[current_time, mcp_client],
+        model=config.get("modelId"),
         callback_handler=None,
     )

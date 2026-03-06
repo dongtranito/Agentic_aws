@@ -25,6 +25,8 @@ export class AgentConstruct extends Construct {
 
     const { gateway, sessionsBucket } = props;
 
+    const parameterPrefix = '/martech/agents';
+
     // Shared memory
     this.memory = new agentcore.Memory(this, 'MarketerMemory', {
       memoryName: 'marketer_memory',
@@ -34,20 +36,24 @@ export class AgentConstruct extends Construct {
     // Deploy individual agents
     const databricks = new DatabricksAgentConstruct(this, 'Databricks', {
       gateway,
+      parameterPrefix,
     });
 
     const clevertap = new ClevertapAgentConstruct(this, 'Clevertap', {
       gateway,
+      parameterPrefix,
     });
 
     const talonone = new TalononeAgentConstruct(this, 'Talonone', {
       gateway,
+      parameterPrefix,
     });
 
     const marketer = new MarketerAgentConstruct(this, 'Marketer', {
       gateway,
       memory: this.memory,
       sessionsBucket,
+      parameterPrefix,
       databricksRuntime: databricks.agent.agentCoreRuntime,
       clevertapRuntime: clevertap.agent.agentCoreRuntime,
       talononeRuntime: talonone.agent.agentCoreRuntime,

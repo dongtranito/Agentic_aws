@@ -1,5 +1,6 @@
 import { MarketerAgent } from ':play-c463-z26-rzy-mar-tech/common-constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import { Stack } from 'aws-cdk-lib';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as agentcore from '@aws-cdk/aws-bedrock-agentcore-alpha';
 import { Construct } from 'constructs';
@@ -8,6 +9,7 @@ export interface MarketerAgentConstructProps {
   gateway: agentcore.Gateway;
   memory: agentcore.Memory;
   sessionsBucket: s3.IBucket;
+  parameterPrefix: string;
   databricksRuntime: agentcore.Runtime;
   clevertapRuntime: agentcore.Runtime;
   talononeRuntime: agentcore.Runtime;
@@ -28,6 +30,7 @@ export class MarketerAgentConstruct extends Construct {
       gateway,
       memory,
       sessionsBucket,
+      parameterPrefix,
       databricksRuntime,
       clevertapRuntime,
       talononeRuntime,
@@ -46,6 +49,13 @@ export class MarketerAgentConstruct extends Construct {
                 'bedrock:ConverseStream',
               ],
               resources: ['*'],
+              effect: iam.Effect.ALLOW,
+            }),
+            new iam.PolicyStatement({
+              actions: ['ssm:GetParameter'],
+              resources: [
+                `arn:aws:ssm:${Stack.of(this).region}:${Stack.of(this).account}:parameter${parameterPrefix}/*`,
+              ],
               effect: iam.Effect.ALLOW,
             }),
           ],
@@ -78,6 +88,7 @@ export class MarketerAgentConstruct extends Construct {
         MEMORY_ID: memory.memoryId,
         GATEWAY_URL: gateway.gatewayUrl ?? '',
         ARTIFACT_BUCKET: sessionsBucket.bucketName,
+        AGENT_CONFIG_PARAMETER: `${parameterPrefix}/marketer/config`,
         DATABRICKS_A2A_ENDPOINT: databricksRuntime.agentRuntimeArn,
         CLEVERTAP_A2A_ENDPOINT: clevertapRuntime.agentRuntimeArn,
         TALONONE_A2A_ENDPOINT: talononeRuntime.agentRuntimeArn,

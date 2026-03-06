@@ -3,6 +3,7 @@ from contextlib import contextmanager
 
 from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig
 from bedrock_agentcore.memory.integrations.strands.session_manager import AgentCoreMemorySessionManager
+from common.config import load_configuration
 from strands import Agent
 from strands_tools import current_time
 
@@ -37,8 +38,11 @@ def get_agent(session_id: str, actor_id: str):
         build_talonone_tool(TALONONE_A2A_ENDPOINT, REGION),
     ]
 
+    config = load_configuration()
+
     try:
         agent = Agent(
+            model=config.get("modelId"),
             system_prompt="""\
 You are a marketing assistant that orchestrates specialized worker agents.
 
