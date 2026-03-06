@@ -184,7 +184,10 @@ export class APIConstruct extends Construct {
     listBedrockModelsHandler.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ['bedrock:ListFoundationModels'],
+        actions: [
+          'bedrock:ListFoundationModels',
+          'bedrock:ListInferenceProfiles',
+        ],
         resources: ['*'],
       }),
     );
