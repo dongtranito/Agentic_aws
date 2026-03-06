@@ -10,7 +10,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as agentcore from '@aws-cdk/aws-bedrock-agentcore-alpha';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { MarketerAgent } from ':play-c463-z26-rzy-mar-tech/common-constructs';
 import * as url from 'url';
@@ -166,6 +166,81 @@ export class APIConstruct extends Construct {
 
     sqlResultsBucket.grantRead(getSqlResultHandler);
 
+    // Lambda for GET /configuration/models
+    const listBedrockModelsHandler = new lambda.Function(
+      this,
+      'ListBedrockModelsHandler',
+      {
+        runtime: lambda.Runtime.NODEJS_LATEST,
+        handler: 'index.handler',
+        code: lambda.Code.fromAsset(getBundlePath('listBedrockModels')),
+        timeout: Duration.seconds(30),
+        tracing: lambda.Tracing.ACTIVE,
+      },
+    );
+
+    listBedrockModelsHandler.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['bedrock:ListFoundationModels'],
+        resources: ['*'],
+      }),
+    );
+
+    const parameterPrefix = `/martech/agents`;
+
+    // Lambda for GET /configuration/{agentName}
+    const getAgentConfigHandler = new lambda.Function(
+      this,
+      'GetAgentConfigHandler',
+      {
+        runtime: lambda.Runtime.NODEJS_LATEST,
+        handler: 'index.handler',
+        code: lambda.Code.fromAsset(getBundlePath('getAgentConfig')),
+        timeout: Duration.seconds(30),
+        tracing: lambda.Tracing.ACTIVE,
+        environment: {
+          PARAMETER_PREFIX: parameterPrefix,
+        },
+      },
+    );
+
+    getAgentConfigHandler.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['ssm:GetParameter'],
+        resources: [
+          `arn:aws:ssm:${Stack.of(this).region}:${Stack.of(this).account}:parameter${parameterPrefix}/*`,
+        ],
+      }),
+    );
+
+    // Lambda for PUT /configuration/{agentName}
+    const putAgentConfigHandler = new lambda.Function(
+      this,
+      'PutAgentConfigHandler',
+      {
+        runtime: lambda.Runtime.NODEJS_LATEST,
+        handler: 'index.handler',
+        code: lambda.Code.fromAsset(getBundlePath('putAgentConfig')),
+        timeout: Duration.seconds(30),
+        tracing: lambda.Tracing.ACTIVE,
+        environment: {
+          PARAMETER_PREFIX: parameterPrefix,
+        },
+      },
+    );
+
+    putAgentConfigHandler.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['ssm:PutParameter'],
+        resources: [
+          `arn:aws:ssm:${Stack.of(this).region}:${Stack.of(this).account}:parameter${parameterPrefix}/*`,
+        ],
+      }),
+    );
+
     const api = new Api(this, 'RestAPI', {
       identity: { userPool },
       getCampaign: {
@@ -194,6 +269,18 @@ export class APIConstruct extends Construct {
       getSqlResult: {
         handler: getSqlResultHandler,
         integration: new apigateway.LambdaIntegration(getSqlResultHandler),
+      },
+      listBedrockModels: {
+        handler: listBedrockModelsHandler,
+        integration: new apigateway.LambdaIntegration(listBedrockModelsHandler),
+      },
+      getAgentConfig: {
+        handler: getAgentConfigHandler,
+        integration: new apigateway.LambdaIntegration(getAgentConfigHandler),
+      },
+      putAgentConfig: {
+        handler: putAgentConfigHandler,
+        integration: new apigateway.LambdaIntegration(putAgentConfigHandler),
       },
     });
 

@@ -63,6 +63,18 @@ export interface ApiProps {
    * Lambda handler for GET /sql-result/{key+}
    */
   getSqlResult: ApiIntegration;
+  /**
+   * Lambda handler for GET /configuration/models
+   */
+  listBedrockModels: ApiIntegration;
+  /**
+   * Lambda handler for GET /configuration/{agentName}
+   */
+  getAgentConfig: ApiIntegration;
+  /**
+   * Lambda handler for PUT /configuration/{agentName}
+   */
+  putAgentConfig: ApiIntegration;
 }
 
 /**
@@ -78,6 +90,9 @@ export class Api extends Construct {
   public readonly putChatHandler: Function;
   public readonly getChatHistoryHandler: Function;
   public readonly getSqlResultHandler: Function;
+  public readonly listBedrockModelsHandler: Function;
+  public readonly getAgentConfigHandler: Function;
+  public readonly putAgentConfigHandler: Function;
 
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
@@ -90,6 +105,9 @@ export class Api extends Construct {
       putChat,
       getChatHistory,
       getSqlResult,
+      listBedrockModels,
+      getAgentConfig,
+      putAgentConfig,
     } = props;
 
     this.getCampaignHandler = getCampaign.handler;
@@ -98,6 +116,9 @@ export class Api extends Construct {
     this.putChatHandler = putChat.handler;
     this.getChatHistoryHandler = getChatHistory.handler;
     this.getSqlResultHandler = getSqlResult.handler;
+    this.listBedrockModelsHandler = listBedrockModels.handler;
+    this.getAgentConfigHandler = getAgentConfig.handler;
+    this.putAgentConfigHandler = putAgentConfig.handler;
 
     const authorizer = new CognitoUserPoolsAuthorizer(this, 'ApiAuthorizer', {
       cognitoUserPools: [identity.userPool],
@@ -161,6 +182,14 @@ export class Api extends Construct {
     const sqlResultKeyResource = sqlResultResource.addResource('{key+}');
     sqlResultKeyResource.addMethod('GET', getSqlResult.integration);
 
+    // GET /configuration/models, GET /configuration/{agentName}, PUT /configuration/{agentName}
+    const configResource = this.api.root.addResource('configuration');
+    const configModelsResource = configResource.addResource('models');
+    configModelsResource.addMethod('GET', listBedrockModels.integration);
+    const configAgentResource = configResource.addResource('{agentName}');
+    configAgentResource.addMethod('GET', getAgentConfig.integration);
+    configAgentResource.addMethod('PUT', putAgentConfig.integration);
+
     // Register the API URL in runtime configuration
     RuntimeConfig.ensure(this).config.apis = {
       ...RuntimeConfig.ensure(this).config.apis!,
@@ -193,6 +222,18 @@ export class Api extends Construct {
       allowedOrigins,
     );
     this.getSqlResultHandler.addEnvironment('ALLOWED_ORIGINS', allowedOrigins);
+    this.listBedrockModelsHandler.addEnvironment(
+      'ALLOWED_ORIGINS',
+      allowedOrigins,
+    );
+    this.getAgentConfigHandler.addEnvironment(
+      'ALLOWED_ORIGINS',
+      allowedOrigins,
+    );
+    this.putAgentConfigHandler.addEnvironment(
+      'ALLOWED_ORIGINS',
+      allowedOrigins,
+    );
   }
 
   /**

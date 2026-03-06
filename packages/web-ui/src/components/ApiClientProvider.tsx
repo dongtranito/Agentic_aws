@@ -7,6 +7,10 @@ import type {
   IGetChatHistoryOutput,
   IGetSqlResultOutput,
   IPutChatInput,
+  IAgentName,
+  IAgentConfig,
+  IGetAgentConfigOutput,
+  IListModelsOutput,
 } from ':play-c463-z26-rzy-mar-tech/api';
 import { createContext, FC, PropsWithChildren, useMemo } from 'react';
 import { useAuth } from 'react-oidc-context';
@@ -27,6 +31,14 @@ export interface ApiClient {
   };
   sqlResult: {
     getUrl: (s3Uri: string) => Promise<string>;
+  };
+  configuration: {
+    listModels: () => Promise<IListModelsOutput>;
+    getAgentConfig: (agentName: IAgentName) => Promise<IGetAgentConfigOutput>;
+    putAgentConfig: (
+      agentName: IAgentName,
+      config: IAgentConfig,
+    ) => Promise<IGetAgentConfigOutput>;
   };
 }
 
@@ -146,6 +158,50 @@ export const ApiClientProvider: FC<PropsWithChildren> = ({ children }) => {
           }
           const data: IGetSqlResultOutput = await response.json();
           return data.url;
+        },
+      },
+      configuration: {
+        listModels: async () => {
+          const response = await fetch(`${apiUrl}/configuration/models`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${auth.user?.id_token}`,
+            },
+          });
+          if (!response.ok) {
+            throw new Error(`Failed to list models: ${response.statusText}`);
+          }
+          return response.json();
+        },
+        getAgentConfig: async (agentName: IAgentName) => {
+          const response = await fetch(`${apiUrl}/configuration/${agentName}`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${auth.user?.id_token}`,
+            },
+          });
+          if (!response.ok) {
+            throw new Error(
+              `Failed to get agent config: ${response.statusText}`,
+            );
+          }
+          return response.json();
+        },
+        putAgentConfig: async (agentName: IAgentName, config: IAgentConfig) => {
+          const response = await fetch(`${apiUrl}/configuration/${agentName}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${auth.user?.id_token}`,
+            },
+            body: JSON.stringify(config),
+          });
+          if (!response.ok) {
+            throw new Error(
+              `Failed to save agent config: ${response.statusText}`,
+            );
+          }
+          return response.json();
         },
       },
     }),

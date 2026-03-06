@@ -7,6 +7,9 @@ const apiHandlers = [
   'putChat',
   'getChatHistory',
   'getSqlResult',
+  'listBedrockModels',
+  'getAgentConfig',
+  'putAgentConfig',
 ];
 
 const mcpHandlers = ['databricks', 'clevertap', 'talonone'];

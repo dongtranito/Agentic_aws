@@ -8,3 +8,6 @@ export * as createCampaign from './api/createCampaign.js';
 export * as putChat from './api/putChat.js';
 export * as getChatHistory from './api/getChatHistory.js';
 export * as getSqlResult from './api/getSqlResult.js';
+export * as listBedrockModels from './api/listBedrockModels.js';
+export * as getAgentConfig from './api/getAgentConfig.js';
+export * as putAgentConfig from './api/putAgentConfig.js';
