@@ -40,3 +40,6 @@ vite.config.*.timestamp*
 /reports
 # Local config (contains secrets)
 packages/infra/config/local.yaml
+
+# Generated at CDK synth time
+packages/infra/src/handlers/seed-data.json

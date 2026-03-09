@@ -20,6 +20,6 @@ export default [
     },
   },
   {
-    ignores: ['**/out-tsc'],
+    ignores: ['**/out-tsc', 'src/handlers/seed-data.json'],
   },
 ];

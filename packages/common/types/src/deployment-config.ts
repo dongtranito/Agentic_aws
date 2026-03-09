@@ -21,11 +21,20 @@ export const McpConfigSchema = z.object({
   }),
 });
 
+export const AgentSettingSchema = z.object({
+  agentName: z.string(),
+  modelId: z.string().optional().default(''),
+  systemPrompt: z.string().optional().default(''),
+});
+
 export const DeploymentConfigSchema = z.object({
   adminUser: AdminUserSchema,
   mcp: McpConfigSchema,
   parameterPrefix: z.string().default('/martech/agents'),
+  defaultAgentSettings: z.array(AgentSettingSchema).optional().default([]),
 });
+
 export type IAdminUser = z.infer<typeof AdminUserSchema>;
 export type IMcpConfig = z.infer<typeof McpConfigSchema>;
+export type IAgentSetting = z.infer<typeof AgentSettingSchema>;
 export type IDeploymentConfig = z.infer<typeof DeploymentConfigSchema>;

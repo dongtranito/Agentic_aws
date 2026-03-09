@@ -13,10 +13,7 @@ def get_clevertap_agent() -> Agent:
     mcp_client = get_gateway_mcp_client("clevertap-target")
     config = load_configuration()
 
-    return Agent(
-        name="CleverTap Agent",
-        description="A CleverTap marketing agent for creating and managing draft campaigns.",
-        system_prompt="""\
+    default_system_prompt = """\
 You are a CleverTap marketing assistant that helps users create draft campaigns.
 
 You have access to the following tools:
@@ -41,7 +38,14 @@ Workflow guidelines:
 
 Supported channels (target_mode): push, email, sms, webpush, whatsapp, webhook.
 For email/sms/whatsapp, provider_nick_name is required.
-""",
+"""
+
+    system_prompt = config.get("systemPrompt") or default_system_prompt
+
+    return Agent(
+        name="CleverTap Agent",
+        description="A CleverTap marketing agent for creating and managing draft campaigns.",
+        system_prompt=system_prompt,
         tools=[current_time, mcp_client],
         model=config.get("modelId"),
         callback_handler=None,

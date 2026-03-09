@@ -40,10 +40,7 @@ def get_agent(session_id: str, actor_id: str):
 
     config = load_configuration()
 
-    try:
-        agent = Agent(
-            model=config.get("modelId"),
-            system_prompt="""\
+    default_system_prompt = """\
 You are a marketing assistant that orchestrates specialized worker agents.
 
 You have access to the following worker agents:
@@ -56,7 +53,14 @@ You have access to the following worker agents:
 
 Use the appropriate tools to help users with their marketing tasks.
 When using tools, always explain what you're doing and interpret the results.
-""",
+"""
+
+    system_prompt = config.get("systemPrompt") or default_system_prompt
+
+    try:
+        agent = Agent(
+            model=config.get("modelId"),
+            system_prompt=system_prompt,
             tools=tools,
             session_manager=session_manager,
         )

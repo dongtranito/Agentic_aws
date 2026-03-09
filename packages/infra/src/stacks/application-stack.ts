@@ -9,6 +9,7 @@ import { APIConstruct } from '../constructs/api.js';
 import { AgentConstruct } from '../constructs/agent.js';
 import { GatewayConstruct } from '../constructs/gateway.js';
 import { StorageAndData } from '../constructs/storage-data.js';
+import { SeedConfig } from '../constructs/seed-config.js';
 
 export interface ApplicationStackProps extends StackProps {
   readonly deploymentConfig: IDeploymentConfig;
@@ -35,6 +36,11 @@ export class ApplicationStack extends Stack {
       gateway: gateway.gateway,
       sessionsBucket: storage.sessionsBucket,
       parameterPrefix: deploymentConfig.parameterPrefix,
+    });
+
+    new SeedConfig(this, 'SeedConfig', {
+      parameterPrefix: deploymentConfig.parameterPrefix,
+      agents: deploymentConfig.defaultAgentSettings,
     });
     const api = new APIConstruct(this, 'ApiConstruct', {
       userPool: identity.userPool,

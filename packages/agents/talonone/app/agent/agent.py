@@ -13,10 +13,7 @@ def get_talonone_agent() -> Agent:
     mcp_client = get_gateway_mcp_client("talonone-target")
     config = load_configuration()
 
-    return Agent(
-        name="TalonOne Agent",
-        description="A TalonOne promotions agent for campaigns, loyalty programs, coupons, and customer sessions.",
-        system_prompt="""\
+    default_system_prompt = """\
 You are a TalonOne promotions assistant with access to TalonOne tools via the gateway.
 
 You have access to the following tools:
@@ -37,7 +34,14 @@ Workflow guidelines:
 3. Check loyalty status with get_customer_loyalty before redeeming points.
 4. Validate coupons with validate_coupon before applying them.
 5. Always explain what you're doing and interpret the results clearly.
-""",
+"""
+
+    system_prompt = config.get("systemPrompt") or default_system_prompt
+
+    return Agent(
+        name="TalonOne Agent",
+        description="A TalonOne promotions agent for campaigns, loyalty programs, coupons, and customer sessions.",
+        system_prompt=system_prompt,
         tools=[current_time, mcp_client],
         model=config.get("modelId"),
         callback_handler=None,

@@ -15,6 +15,7 @@ export type IAgentName = z.TypeOf<typeof AgentNameSchema>;
 
 export const AgentConfigSchema = z.object({
   modelId: z.string(),
+  systemPrompt: z.string().optional().default(''),
 });
 
 export type IAgentConfig = z.TypeOf<typeof AgentConfigSchema>;

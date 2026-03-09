@@ -11,6 +11,7 @@ import {
   ColumnLayout,
   Box,
   SelectProps,
+  Textarea,
 } from '@cloudscape-design/components';
 import type { IAgentName } from ':play-c463-z26-rzy-mar-tech/api';
 import { useApi } from '../../hooks/useApi';
@@ -24,19 +25,20 @@ const AGENTS: { name: IAgentName; label: string }[] = [
 
 interface AgentConfigState {
   modelId: string;
-  saving: boolean;
+  systemPrompt: string;
   dirty: boolean;
 }
 
 export const Configuration = () => {
   const api = useApi();
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [models, setModels] = useState<SelectProps.Option[]>([]);
   const [configs, setConfigs] = useState<Record<IAgentName, AgentConfigState>>({
-    marketer: { modelId: '', saving: false, dirty: false },
-    databricks: { modelId: '', saving: false, dirty: false },
-    talonone: { modelId: '', saving: false, dirty: false },
-    clevertap: { modelId: '', saving: false, dirty: false },
+    marketer: { modelId: '', systemPrompt: '', dirty: false },
+    databricks: { modelId: '', systemPrompt: '', dirty: false },
+    talonone: { modelId: '', systemPrompt: '', dirty: false },
+    clevertap: { modelId: '', systemPrompt: '', dirty: false },
   });
   const [flash, setFlash] = useState<
     { type: 'success' | 'error'; content: string; id: string }[]
@@ -58,11 +60,11 @@ export const Configuration = () => {
         })),
       );
 
-      const newConfigs = { ...configs };
+      const newConfigs = {} as Record<IAgentName, AgentConfigState>;
       AGENTS.forEach((agent, i) => {
         newConfigs[agent.name] = {
           modelId: configResults[i].config.modelId || '',
-          saving: false,
+          systemPrompt: configResults[i].config.systemPrompt || '',
           dirty: false,
         };
       });
@@ -92,36 +94,56 @@ export const Configuration = () => {
     }));
   };
 
-  const handleSave = async (agentName: IAgentName) => {
+  const handleSystemPromptChange = (
+    agentName: IAgentName,
+    systemPrompt: string,
+  ) => {
     setConfigs((prev) => ({
       ...prev,
-      [agentName]: { ...prev[agentName], saving: true },
+      [agentName]: { ...prev[agentName], systemPrompt, dirty: true },
     }));
-    try {
-      await api.configuration.putAgentConfig(agentName, {
-        modelId: configs[agentName].modelId,
-      });
-      setConfigs((prev) => ({
-        ...prev,
-        [agentName]: { ...prev[agentName], saving: false, dirty: false },
-      }));
-      setFlash([
-        {
-          type: 'success',
-          content: `Configuration saved for ${AGENTS.find((a) => a.name === agentName)?.label}`,
-          id: `save-${agentName}-${Date.now()}`,
-        },
-      ]);
-    } catch (err) {
-      setConfigs((prev) => ({
-        ...prev,
-        [agentName]: { ...prev[agentName], saving: false },
-      }));
+  };
+
+  const hasDirtyConfigs = AGENTS.some((a) => configs[a.name].dirty);
+
+  const handleSaveAll = async () => {
+    setSaving(true);
+    const dirtyAgents = AGENTS.filter((a) => configs[a.name].dirty);
+    const errors: string[] = [];
+
+    await Promise.all(
+      dirtyAgents.map(async (agent) => {
+        try {
+          await api.configuration.putAgentConfig(agent.name, {
+            modelId: configs[agent.name].modelId,
+            systemPrompt: configs[agent.name].systemPrompt,
+          });
+          setConfigs((prev) => ({
+            ...prev,
+            [agent.name]: { ...prev[agent.name], dirty: false },
+          }));
+        } catch {
+          errors.push(agent.label);
+        }
+      }),
+    );
+
+    setSaving(false);
+
+    if (errors.length > 0) {
       setFlash([
         {
           type: 'error',
-          content: `Failed to save configuration for ${agentName}`,
-          id: `save-error-${agentName}-${Date.now()}`,
+          content: `Failed to save configuration for: ${errors.join(', ')}`,
+          id: `save-error-${Date.now()}`,
+        },
+      ]);
+    } else {
+      setFlash([
+        {
+          type: 'success',
+          content: `Configuration saved for ${dirtyAgents.map((a) => a.label).join(', ')}`,
+          id: `save-success-${Date.now()}`,
         },
       ]);
     }
@@ -147,47 +169,59 @@ export const Configuration = () => {
             setFlash((prev) => prev.filter((i) => i.id !== f.id)),
         }))}
       />
+      <Header
+        actions={
+          <Button
+            variant="primary"
+            loading={saving}
+            disabled={!hasDirtyConfigs}
+            onClick={handleSaveAll}
+          >
+            Save
+          </Button>
+        }
+      >
+        Agent Configuration
+      </Header>
       <ColumnLayout columns={2}>
         {AGENTS.map((agent) => (
-          <Container
-            key={agent.name}
-            header={
-              <Header
-                actions={
-                  <Button
-                    variant="primary"
-                    loading={configs[agent.name].saving}
-                    disabled={!configs[agent.name].dirty}
-                    onClick={() => handleSave(agent.name)}
-                  >
-                    Save
-                  </Button>
-                }
+          <Container key={agent.name} header={<Header>{agent.label}</Header>}>
+            <SpaceBetween size="m">
+              <FormField
+                label="Model"
+                description="Select the Bedrock model for this agent"
               >
-                {agent.label}
-              </Header>
-            }
-          >
-            <FormField
-              label="Model"
-              description="Select the Bedrock model for this agent"
-            >
-              <Select
-                selectedOption={
-                  models.find((m) => m.value === configs[agent.name].modelId) ??
-                  null
-                }
-                onChange={({ detail }) =>
-                  handleModelChange(
-                    agent.name,
-                    detail.selectedOption.value ?? '',
-                  )
-                }
-                options={models}
-                filteringType="auto"
-                placeholder="Choose a model"
-              />
-            </FormField>
+                <Select
+                  selectedOption={
+                    models.find(
+                      (m) => m.value === configs[agent.name].modelId,
+                    ) ?? null
+                  }
+                  onChange={({ detail }) =>
+                    handleModelChange(
+                      agent.name,
+                      detail.selectedOption.value ?? '',
+                    )
+                  }
+                  options={models}
+                  filteringType="auto"
+                  placeholder="Choose a model"
+                />
+              </FormField>
+              <FormField
+                label="System Prompt"
+                description="Custom system prompt for this agent (leave empty to use default)"
+              >
+                <Textarea
+                  value={configs[agent.name].systemPrompt}
+                  onChange={({ detail }) =>
+                    handleSystemPromptChange(agent.name, detail.value)
+                  }
+                  placeholder="Enter a custom system prompt..."
+                  rows={6}
+                />
+              </FormField>
+            </SpaceBetween>
           </Container>
         ))}
       </ColumnLayout>

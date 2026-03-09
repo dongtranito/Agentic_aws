@@ -54,7 +54,7 @@ export const handler = async (
           headers: corsHeaders,
           body: JSON.stringify({
             agentName: parsed.data,
-            config: { modelId: '' },
+            config: { modelId: '', systemPrompt: '' },
           }),
         };
       }

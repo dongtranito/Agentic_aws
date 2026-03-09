@@ -13,10 +13,7 @@ def get_databricks_agent() -> Agent:
     mcp_client = get_gateway_mcp_client("databricks-target")
     config = load_configuration()
 
-    return Agent(
-        name="Databricks Agent",
-        description="A Databricks data analytics agent for SQL queries, data discovery, and job management.",
-        system_prompt="""
+    default_system_prompt = """
 You are a Databricks data analytics assistant with access to Databricks tools via the gateway.
 
 You have access to the following tools:
@@ -38,7 +35,14 @@ Workflow guidelines:
    poll with get_statement_result.
 5. If results are truncated, inform the user about the S3 location of the full result set.
 6. Always explain what you're doing and interpret the results clearly.
-""",
+"""
+
+    system_prompt = config.get("systemPrompt") or default_system_prompt
+
+    return Agent(
+        name="Databricks Agent",
+        description="A Databricks data analytics agent for SQL queries, data discovery, and job management.",
+        system_prompt=system_prompt,
         tools=[current_time, mcp_client],
         model=config.get("modelId"),
         callback_handler=None,
