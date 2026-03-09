@@ -39,7 +39,7 @@ export class SeedConfig extends Construct {
       JSON.stringify({ parameterPrefix, agents }, null, 2),
     );
 
-    const seedFunction = new NodejsFunction(this, 'SeedHandlerFunction', {
+    const seedFunction = new NodejsFunction(this, 'SeedHandler', {
       runtime: Runtime.NODEJS_22_X,
       entry: path.join(handlersDir, 'seed-handler.ts'),
       handler: 'handler',
@@ -64,11 +64,11 @@ export class SeedConfig extends Construct {
       }),
     );
 
-    const provider = new cr.Provider(this, 'SeedProvider', {
+    const provider = new cr.Provider(this, 'ProviderCR', {
       onEventHandler: seedFunction,
     });
 
-    new CustomResource(this, 'SeedResource', {
+    new CustomResource(this, 'SeedCR', {
       serviceToken: provider.serviceToken,
     });
   }

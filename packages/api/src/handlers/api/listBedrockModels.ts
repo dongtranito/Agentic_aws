@@ -15,58 +15,62 @@ const bedrock = new BedrockClient({});
 /**
  * Lambda handler for GET /configuration/models
  *
- * Lists available models by merging foundation models with inference profiles.
- * For each foundation model:
- *  - If it supports ON_DEMAND, return the base model ID (direct regional invocation).
- *  - Otherwise, find a matching inference profile and return that ID instead.
- * Models with no usable ID are excluded.
+ * Lists available models by combining:
+ * 1. Foundation models that support ON_DEMAND (direct regional invocation)
+ * 2. All active inference profiles (regional and cross-region)
+ *
+ * This ensures both on-demand models and cross-region profiles (apac.*, us.*, eu.*)
+ * appear in the configuration dropdown.
  */
 export const handler = async (
   _event: APIGatewayProxyEvent,
 ): Promise<APIGatewayProxyResult> => {
   try {
-    const [fmResponse, ipResponse] = await Promise.all([
+    const [fmResponse, profilesResponse] = await Promise.all([
       bedrock.send(new ListFoundationModelsCommand({})),
       bedrock.send(new ListInferenceProfilesCommand({})),
     ]);
 
-    // Build a map: base model ID → inference profile ID
-    // Each profile's models[] contains ARNs like
-    // arn:aws:bedrock:<region>::foundation-model/<modelId>
-    const profileByModelId = new Map<string, string>();
-    for (const profile of ipResponse.inferenceProfileSummaries ?? []) {
-      const profileId = profile.inferenceProfileId;
-      if (!profileId || profile.status !== 'ACTIVE') continue;
-      for (const m of profile.models ?? []) {
-        const arn = m.modelArn ?? '';
-        const baseId = arn.split('/').pop();
-        if (baseId && !profileByModelId.has(baseId)) {
-          profileByModelId.set(baseId, profileId);
-        }
-      }
+    const seen = new Set<string>();
+    const models: {
+      modelId: string;
+      modelName: string;
+      providerName: string;
+    }[] = [];
+
+    // 1. Foundation models available on-demand in this region
+    for (const m of fmResponse.modelSummaries ?? []) {
+      if (m.modelLifecycle?.status !== 'ACTIVE') continue;
+      const inferenceTypes = m.inferenceTypesSupported ?? [];
+      if (!inferenceTypes.includes('ON_DEMAND')) continue;
+
+      const modelId = m.modelId ?? '';
+      if (!modelId || seen.has(modelId)) continue;
+      seen.add(modelId);
+
+      models.push({
+        modelId,
+        modelName: m.modelName ?? '',
+        providerName: m.providerName ?? '',
+      });
     }
 
-    const models = (fmResponse.modelSummaries ?? [])
-      .filter((m) => m.modelLifecycle?.status === 'ACTIVE')
-      .map((m) => {
-        const baseId = m.modelId ?? '';
-        const inferenceTypes = m.inferenceTypesSupported ?? [];
-        const supportsOnDemand = inferenceTypes.includes('ON_DEMAND');
+    // 2. All active inference profiles (regional + cross-region)
+    for (const p of profilesResponse.inferenceProfileSummaries ?? []) {
+      const profileId = p.inferenceProfileId;
+      if (!profileId || p.status !== 'ACTIVE' || seen.has(profileId)) continue;
+      seen.add(profileId);
 
-        // Use the base ID if on-demand is available, otherwise fall back to an inference profile
-        const usableId = supportsOnDemand
-          ? baseId
-          : profileByModelId.get(baseId);
+      // Derive provider from profile ID (e.g. "apac.anthropic.claude-..." → "anthropic")
+      const parts = profileId.split('.');
+      const providerName = parts.length > 1 ? parts[1] : parts[0];
 
-        if (!usableId) return null;
-
-        return {
-          modelId: usableId,
-          modelName: m.modelName ?? '',
-          providerName: m.providerName ?? '',
-        };
-      })
-      .filter(Boolean);
+      models.push({
+        modelId: profileId,
+        modelName: p.inferenceProfileName ?? profileId,
+        providerName,
+      });
+    }
 
     return {
       statusCode: 200,

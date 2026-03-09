@@ -169,20 +169,7 @@ export const Configuration = () => {
             setFlash((prev) => prev.filter((i) => i.id !== f.id)),
         }))}
       />
-      <Header
-        actions={
-          <Button
-            variant="primary"
-            loading={saving}
-            disabled={!hasDirtyConfigs}
-            onClick={handleSaveAll}
-          >
-            Save
-          </Button>
-        }
-      >
-        Agent Configuration
-      </Header>
+      <Header>Agent Configuration</Header>
       <ColumnLayout columns={2}>
         {AGENTS.map((agent) => (
           <Container key={agent.name} header={<Header>{agent.label}</Header>}>
@@ -225,6 +212,16 @@ export const Configuration = () => {
           </Container>
         ))}
       </ColumnLayout>
+      <Box float="right">
+        <Button
+          variant="primary"
+          loading={saving}
+          disabled={!hasDirtyConfigs}
+          onClick={handleSaveAll}
+        >
+          Save
+        </Button>
+      </Box>
     </SpaceBetween>
   );
 };
