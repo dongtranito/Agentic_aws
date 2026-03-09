@@ -17,10 +17,10 @@ import type { IAgentName } from ':play-c463-z26-rzy-mar-tech/api';
 import { useApi } from '../../hooks/useApi';
 
 const AGENTS: { name: IAgentName; label: string }[] = [
-  { name: 'marketer', label: 'Marketer Agent' },
-  { name: 'databricks', label: 'Databricks Agent' },
-  { name: 'talonone', label: 'TalonOne Agent' },
-  { name: 'clevertap', label: 'CleverTap Agent' },
+  { name: 'marketer', label: 'Marketer Agent - Supervisor' },
+  { name: 'databricks', label: 'Databricks Agent - Subagent' },
+  { name: 'talonone', label: 'TalonOne Agent - Subagent' },
+  { name: 'clevertap', label: 'CleverTap Agent - Subagent' },
 ];
 
 interface AgentConfigState {
@@ -177,6 +177,7 @@ export const Configuration = () => {
               <FormField
                 label="Model"
                 description="Select the Bedrock model for this agent"
+                stretch
               >
                 <Select
                   selectedOption={
@@ -198,6 +199,7 @@ export const Configuration = () => {
               <FormField
                 label="System Prompt"
                 description="Custom system prompt for this agent (leave empty to use default)"
+                stretch
               >
                 <Textarea
                   value={configs[agent.name].systemPrompt}
@@ -205,7 +207,7 @@ export const Configuration = () => {
                     handleSystemPromptChange(agent.name, detail.value)
                   }
                   placeholder="Enter a custom system prompt..."
-                  rows={6}
+                  rows={8}
                 />
               </FormField>
             </SpaceBetween>
