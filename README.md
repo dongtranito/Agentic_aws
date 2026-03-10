@@ -9,6 +9,10 @@ The solution is composed of:
 - A Python-based AI agent powered by AWS Bedrock AgentCore and the Strands Agents framework
 - AWS CDK infrastructure deploying to Lambda, DynamoDB, S3, API Gateway, Cognito, and Bedrock
 
+## Architecture
+
+![architecture](./docs/architecture.jpg)
+
 ## Prerequisites
 
 - [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) installed and configured
