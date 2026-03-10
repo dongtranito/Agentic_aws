@@ -1,140 +1,72 @@
 # play-c463-z26-rzy-mar-tech
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) has been successfully created! ✨.
+An AI-powered marketing campaign management platform built on AWS. Users can create and manage marketing campaigns through a web interface and interact with an AI agent via chat to execute marketing tasks.
 
-[Learn more about this workspace setup and the @aws/nx-plugin](https://awslabs.github.io/nx-plugin-for-aws). Now, let's get you up to speed!
+The solution is composed of:
 
-## Install Nx Console
+- A React/TypeScript frontend with Cognito authentication, campaign management, and a real-time chat interface
+- A TypeScript Lambda backend providing REST APIs for campaigns, chat, and agent configuration
+- A Python-based AI agent powered by AWS Bedrock AgentCore and the Strands Agents framework
+- AWS CDK infrastructure deploying to Lambda, DynamoDB, S3, API Gateway, Cognito, and Bedrock
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+## Prerequisites
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) installed and configured
+- [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/) installed
+- [Docker](https://docs.docker.com/get-docker/) running locally
 
-## Available generators
+## Build & Deploy
 
-The following list of generators are what is currently available in the `@aws/nx-plugin`:
-
-- **connection**: Integrates a source project with a target project
-
-- **license**: Add LICENSE files and configure source code licence headers
-
-- **py#fast-api**: Generates a FastAPI Python project
-
-- **py#lambda-function**: Adds a lambda function to a python project
-
-- **py#mcp-server**: Generate a Python Model Context Protocol (MCP) server for providing context to Large Language Models
-
-- **py#project**: Generates a Python project
-
-- **py#strands-agent**: Add a Strands Agent to a Python project
-
-- **terraform#project**: Generates a Terraform project
-
-- **ts#infra**: Generates a cdk application
-
-- **ts#lambda-function**: Generate a TypeScript lambda function
-
-- **ts#mcp-server**: Generate a TypeScript Model Context Protocol (MCP) server for providing context to Large Language Models
-
-- **ts#nx-generator**: Generator for adding an Nx Generator to an existing TypeScript project
-
-- **ts#nx-plugin**: Generate an Nx Plugin of your own! Build custom generators automatically made available for AI vibe-coding via MCP
-
-- **ts#project**: Generates a TypeScript project
-
-- **ts#react-website**: Generates a React static website
-
-- **ts#react-website#auth**: Adds auth to an existing React website
-
-- **ts#smithy-api**: Create an API using Smithy and the Smithy TypeScript Server SDK
-
-- **ts#strands-agent**: Add a Strands Agent to a TypeScript project
-
-- **ts#trpc-api**: creates a trpc backend
-
-You also have the option of using additional [commmunity plugins](https://nx.dev/plugin-registry) as needed.
-
-## Invoking a generator
+### 1. Authenticate with AWS ECR Public
 
 ```sh
-pnpm exec nx g @aws/nx-plugin:<generator-name>
+aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 ```
 
-Alternatively you can use the NX IDE plugin to invoke your generators.
-
-Refer to the [full documentation](https://awslabs.github.io/nx-plugin-for-aws) for additional guidance for each generator.
-
-## Common tasks
-
-### Build a single project
+### 2. Build the project
 
 ```sh
-pnpm exec nx build <project-name>
+pnpm run build:all
 ```
 
-### Build all projects
+### 3. Deploy to AWS
 
 ```sh
-pnpm exec nx run-many --target build --all
-# or
-pnpm exec build:all
+pnpm exec nx deploy @play-c463-z26-rzy-mar-tech/infra "play-c463-z26-rzy-mar-tech-infra-sandbox/*"
 ```
 
-### Run arbitrary task
+## Serving the UI locally
+
+After deploying at least once (so the backend resources exist), you can run the UI locally for development and testing.
+
+Load the runtime config from your deployed stack:
 
 ```sh
-pnpm exec nx <target> <project-name>
+pnpm exec nx run @play-c463-z26-rzy-mar-tech/web-ui:load:runtime-config
 ```
 
-### Lint (and fix) all projects
+Start the local dev server:
 
 ```sh
-pnpm exec nx run-many --target lint --configuration=fix --all
+pnpm exec nx serve @play-c463-z26-rzy-mar-tech/web-ui
 ```
 
-## Test all projects (and update snapshots)
+This starts a Vite dev server with HMR enabled.
+
+## Known issues
+
+### Docker build failures due to Nx cache
+
+Nx caching can reference Docker images that no longer exist locally, causing errors like:
+
+```
+error: no such object: databricks-agent:latest
+```
+
+To fix this, reset the Nx cache:
 
 ```sh
-pnpm exec nx run-many --target test --all --update
+pnpm nx reset
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the Nx docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Keep TypeScript project references up to date
-
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` statements). This sync is automatically done when running tasks such as `build`, which require updated references to function correctly.
-
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-pnpm exec nx sync
-```
-
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
-
-```sh
-pnpm exec nx sync:check
-```
-
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
-
-## Set up CI!
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-pnpm exec nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [@aws/nx-plugin quick-start](https://awslabs.github.io/nx-plugin-for-aws/en/get_started/quick-start/)
-- [@aws/nx-plugin AI dungeon game](https://awslabs.github.io/nx-plugin-for-aws/en/get_started/tutorials/dungeon-game/overview/)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Then re-run your build/deploy commands.
