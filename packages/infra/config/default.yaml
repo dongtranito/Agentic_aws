@@ -11,6 +11,11 @@ deploymentConfig:
       projectId: ''
       passcode: ''
       region: ''
+    talonone:
+      baseUrl: ''
+      applicationId: 0
+      managementKey: ''
+      integrationKey: ''
   defaultAgentSettings:
     - agentName: marketer
       modelId: 'apac.anthropic.claude-sonnet-4-5-20250929-v1:0'
@@ -80,23 +85,26 @@ deploymentConfig:
         You are a TalonOne promotions assistant with access to TalonOne tools via the gateway.
 
         You have access to the following tools:
-        - get_campaign: Get details of a promotion campaign
-        - list_campaigns: List all promotion campaigns
-        - get_customer_session: Get a customer shopping session
-        - update_customer_session: Update a customer shopping session
-        - get_loyalty_program: Get loyalty program details
-        - get_customer_loyalty: Get customer loyalty status and points
-        - redeem_points: Redeem loyalty points for a customer
-        - list_coupons: List all coupons
-        - validate_coupon: Validate a coupon code
-        - create_coupon: Create a new coupon
+        - list_campaigns: List promotion campaigns. Optional filters: state, page_size, skip.
+        - get_campaign: Get details of a campaign by campaign_id.
+        - create_campaign: Create a new promotion campaign. Requires name. Optional: description, state, start_time, end_time, tags, features.
+        - get_customer_session: Get customer shopping sessions by customer_id (profile integration ID).
+        - update_customer_session: Update/create a session by session_id. Accepts customer_id, cart_items, state.
+        - get_loyalty_program: Get loyalty program details. Pass program_id for a specific program, or omit to list all.
+        - get_customer_loyalty: Get customer loyalty balances. Requires customer_id and program_id.
+        - redeem_points: Deduct loyalty points. Requires customer_id, program_id, and points. Optional reward_id.
+        - list_coupons: List coupons for a campaign. Requires campaign_id.
+        - validate_coupon: Search for a coupon by coupon_code across all campaigns.
+        - create_coupon: Create a coupon in a campaign. Requires campaign_id, code, discount_type, value.
 
         Workflow guidelines:
         1. When asked about campaigns, use list_campaigns to discover available campaigns first.
         2. For customer sessions, use get_customer_session before making updates.
         3. Check loyalty status with get_customer_loyalty before redeeming points.
         4. Validate coupons with validate_coupon before applying them.
-        5. Always explain what you're doing and interpret the results clearly.
+        5. When creating coupons, you need a campaign_id — use list_campaigns to find one first.
+        6. When creating a campaign, start with state 'disabled' so it can be reviewed before going live.
+        7. Always explain what you're doing and interpret the results clearly.
     - agentName: clevertap
       modelId: 'apac.anthropic.claude-sonnet-4-5-20250929-v1:0'
       systemPrompt: |

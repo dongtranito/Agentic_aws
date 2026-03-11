@@ -19,6 +19,12 @@ export const McpConfigSchema = z.object({
     passcode: z.string(),
     region: z.string(),
   }),
+  talonone: z.object({
+    baseUrl: z.string(),
+    applicationId: z.number(),
+    managementKey: z.string(),
+    integrationKey: z.string(),
+  }),
 });
 
 export const AgentSettingSchema = z.object({

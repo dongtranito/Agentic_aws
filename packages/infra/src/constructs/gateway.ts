@@ -61,6 +61,10 @@ export class GatewayConstruct extends Construct {
     this.talonOne = new TalonOneTarget(this, 'TalonOne', {
       gateway: this.gateway,
       bundlePath,
+      talonOneBaseUrl: mcpConfig.talonone.baseUrl,
+      talonOneApplicationId: mcpConfig.talonone.applicationId,
+      talonOneManagementKey: mcpConfig.talonone.managementKey,
+      talonOneIntegrationKey: mcpConfig.talonone.integrationKey,
     });
   }
 }
