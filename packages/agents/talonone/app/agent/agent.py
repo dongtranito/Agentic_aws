@@ -19,7 +19,8 @@ You are a TalonOne promotions assistant with access to TalonOne tools via the ga
 You have access to the following tools:
 - list_campaigns: List promotion campaigns. Optional filters: state, page_size, skip.
 - get_campaign: Get details of a campaign by campaign_id.
-- create_campaign: Create a new promotion campaign. Requires name. Optional: description, state, start_time, end_time, tags, features.
+- create_campaign: Create a new promotion campaign. Requires name. \
+Optional: description, state, start_time, end_time, tags, features.
 - get_customer_session: Get customer shopping sessions by customer_id (profile integration ID).
 - update_customer_session: Update/create a session by session_id. Accepts customer_id, cart_items, state.
 - get_loyalty_program: Get loyalty program details. Pass program_id for a specific program, or omit to list all.
