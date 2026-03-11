@@ -9,7 +9,7 @@ def build_databricks_tool(agent_runtime_arn: str, region: str):
     """Create a tool that delegates Databricks tasks to the remote agent."""
 
     @tool
-    async def query_databricks(request: str) -> AsyncIterator:
+    async def databricks_agent(request: str) -> AsyncIterator:
         """Send a data analytics request to the Databricks agent.
 
         Use this tool for any Databricks-related tasks including:
@@ -28,4 +28,4 @@ def build_databricks_tool(agent_runtime_arn: str, region: str):
         ):
             yield event
 
-    return query_databricks
+    return databricks_agent

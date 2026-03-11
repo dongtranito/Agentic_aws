@@ -9,7 +9,7 @@ def build_talonone_tool(agent_runtime_arn: str, region: str):
     """Create a tool that delegates TalonOne tasks to the remote agent."""
 
     @tool
-    async def query_talonone(request: str) -> AsyncIterator:
+    async def talonone_agent(request: str) -> AsyncIterator:
         """Send a promotions request to the TalonOne agent.
 
         Use this tool for any TalonOne-related tasks including:
@@ -28,4 +28,4 @@ def build_talonone_tool(agent_runtime_arn: str, region: str):
         ):
             yield event
 
-    return query_talonone
+    return talonone_agent

@@ -9,7 +9,7 @@ def build_clevertap_tool(agent_runtime_arn: str, region: str):
     """Create a tool that delegates CleverTap tasks to the remote agent."""
 
     @tool
-    async def query_clevertap(request: str) -> AsyncIterator:
+    async def clevertap_agent(request: str) -> AsyncIterator:
         """Send a marketing request to the CleverTap agent.
 
         Use this tool for any CleverTap-related tasks including:
@@ -28,4 +28,4 @@ def build_clevertap_tool(agent_runtime_arn: str, region: str):
         ):
             yield event
 
-    return query_clevertap
+    return clevertap_agent
