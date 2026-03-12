@@ -10,6 +10,7 @@ import type { APIGatewayProxyEvent } from 'aws-lambda';
 import { corsHeaders } from './utils/index.js';
 
 const client = new BedrockAgentCoreClient({});
+
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const AGENT_RUNTIME_ARN = process.env.AGENT_RUNTIME_ARN!;
 

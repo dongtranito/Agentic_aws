@@ -8,6 +8,8 @@ import { corsHeaders } from './utils/index.js';
 import { PutAgentConfigInputSchema } from '../../schema/configuration.js';
 
 const ssm = new SSMClient({});
+
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const PARAMETER_PREFIX = process.env.PARAMETER_PREFIX!;
 
 /**

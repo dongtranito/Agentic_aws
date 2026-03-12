@@ -6,6 +6,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { PutCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, corsHeaders } from './utils/index.js';
 
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const CAMPAIGNS_TABLE_NAME = process.env.CAMPAIGNS_TABLE_NAME!;
 
 /**

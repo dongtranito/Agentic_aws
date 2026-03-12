@@ -7,7 +7,9 @@ import { QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { ddb, corsHeaders } from './utils/index.js';
 import { GetCampaignsInputSchema } from '../../schema/campaign.js';
 
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const CAMPAIGNS_TABLE_NAME = process.env.CAMPAIGNS_TABLE_NAME!;
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const CAMPAIGN_ACTIVE_INDEX = process.env.CAMPAIGN_ACTIVE_INDEX!;
 
 /**

@@ -2,7 +2,7 @@
  * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  * SPDX-License-Identifier: Apache-2.0
  */
-import type { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import type { APIGatewayProxyResult } from 'aws-lambda';
 import {
   BedrockClient,
   ListFoundationModelsCommand,
@@ -22,9 +22,7 @@ const bedrock = new BedrockClient({});
  * This ensures both on-demand models and cross-region profiles (apac.*, us.*, eu.*)
  * appear in the configuration dropdown.
  */
-export const handler = async (
-  _event: APIGatewayProxyEvent,
-): Promise<APIGatewayProxyResult> => {
+export const handler = async (): Promise<APIGatewayProxyResult> => {
   try {
     const [fmResponse, profilesResponse] = await Promise.all([
       bedrock.send(new ListFoundationModelsCommand({})),
