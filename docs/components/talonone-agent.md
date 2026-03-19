@@ -10,7 +10,7 @@ The TalonOne Agent is a worker agent focused on loyalty and promotions managemen
 
 - Python with FastAPI
 - [Strands Agents framework](https://strandsagents.com)
-- Bedrock AgentCore Runtime (containerized on ECS)
+- Bedrock AgentCore Runtime
 - Shared A2A server factory from [`packages/agents/common`](../../packages/agents/common/)
 
 ## Entry Point

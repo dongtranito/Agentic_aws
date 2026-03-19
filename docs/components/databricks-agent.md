@@ -10,7 +10,7 @@ The Databricks Agent is a worker agent that provides data analytics capabilities
 
 - Python with FastAPI
 - [Strands Agents framework](https://strandsagents.com)
-- Bedrock AgentCore Runtime (containerized on ECS)
+- Bedrock AgentCore Runtime
 - Shared A2A server factory from [`packages/agents/common`](../../packages/agents/common/)
 
 ## Entry Point

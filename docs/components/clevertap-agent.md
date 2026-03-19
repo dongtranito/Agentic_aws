@@ -10,7 +10,7 @@ The CleverTap Agent is a worker agent responsible for campaign lifecycle managem
 
 - Python with FastAPI
 - [Strands Agents framework](https://strandsagents.com)
-- Bedrock AgentCore Runtime (containerized on ECS)
+- Bedrock AgentCore Runtime
 - Shared A2A server factory from [`packages/agents/common`](../../packages/agents/common/)
 
 ## Entry Point
