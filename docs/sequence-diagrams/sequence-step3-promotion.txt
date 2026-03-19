@@ -1,0 +1,11 @@
+title: Step 3 (Optional) — Create Promotion
+
+Web UI -> API Handler: User requests promotion
+API Handler -> Marketing Agent: Invoke via AgentCore Runtime
+Marketing Agent -> TalonOne Agent: Delegate promotion setup (A2A)
+TalonOne Agent -> MCP Gateway: Call TalonOne tools
+MCP Gateway -> TalonOne: API calls (campaign, coupons)
+TalonOne --> MCP Gateway: Results
+MCP Gateway --> TalonOne Agent: Tool results
+TalonOne Agent --> Marketing Agent: Promotion details
+Marketing Agent --> Web UI: Stream workflow summary (SSE)

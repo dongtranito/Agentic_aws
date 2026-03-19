@@ -1,0 +1,13 @@
+title: Step 1 — Define Target Audience
+
+Web UI -> API Handler: User sends prompt
+API Handler -> Marketing Agent: Invoke via AgentCore Runtime
+Marketing Agent -> Databricks Agent: Delegate audience task (A2A)
+Databricks Agent -> MCP Gateway: Call Databricks tools
+MCP Gateway -> Databricks: API calls (SQL, catalog discovery)
+Databricks --> MCP Gateway: Results
+MCP Gateway --> Databricks Agent: Tool results
+Databricks Agent --> Marketing Agent: Audience data
+Marketing Agent --> Web UI: Stream audience details (SSE)
+
+...: User reviews and confirms audience

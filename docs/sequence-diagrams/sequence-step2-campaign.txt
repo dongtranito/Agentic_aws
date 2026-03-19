@@ -1,0 +1,11 @@
+title: Step 2 — Create Campaign
+
+Web UI -> API Handler: User confirms audience
+API Handler -> Marketing Agent: Invoke via AgentCore Runtime
+Marketing Agent -> CleverTap Agent: Delegate campaign creation (A2A)
+CleverTap Agent -> MCP Gateway: Call CleverTap tools
+MCP Gateway -> CleverTap: API calls (draft, confirm)
+CleverTap --> MCP Gateway: Results
+MCP Gateway --> CleverTap Agent: Tool results
+CleverTap Agent --> Marketing Agent: Campaign details
+Marketing Agent --> Web UI: Stream campaign confirmation (SSE)
