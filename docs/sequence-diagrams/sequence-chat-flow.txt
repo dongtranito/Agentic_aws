@@ -1,0 +1,11 @@
+title: Chat Flow
+
+Web UI -> API Gateway: PUT /chat (prompt, sessionId)
+API Gateway -> Marketing Agent: Invoke via AgentCore Runtime
+Marketing Agent -> Worker Agent: Delegate task (A2A)
+Worker Agent -> MCP Gateway: Call tools
+MCP Gateway -> External API: API request
+External API --> MCP Gateway: Response
+MCP Gateway --> Worker Agent: Tool result
+Worker Agent --> Marketing Agent: Result
+Marketing Agent --> Web UI: Stream SSE events

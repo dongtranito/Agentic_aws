@@ -78,3 +78,7 @@ pnpm nx reset
 ```
 
 Then re-run your build/deploy commands.
+
+### WebUI `Network Error`
+
+The Web-UI may return `Network Error` during the chat. To fix, just refresh the page to get the update from the agent. If the answer seems like it's not completed yet, refresh again.

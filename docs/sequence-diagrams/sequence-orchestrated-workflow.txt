@@ -1,0 +1,30 @@
+title: Campaign Creation Workflow
+
+_: **Step 1 — Define Target Audience**
+
+Web UI -> Marketing Agent: User describes audience
+Marketing Agent -> Databricks Agent: Query audience data (A2A)
+Databricks Agent --> Marketing Agent: Audience results
+Marketing Agent --> Web UI: Present audience, ask confirmation
+
+...: User confirms
+
+_: **Step 2 — Create Campaign**
+
+Web UI -> Marketing Agent: User confirms audience
+Marketing Agent -> CleverTap Agent: Create campaign (A2A)
+CleverTap Agent --> Marketing Agent: Draft + estimated reach
+Marketing Agent --> Web UI: Present draft, ask confirmation
+
+...: User confirms
+
+Marketing Agent -> CleverTap Agent: Confirm campaign (A2A)
+CleverTap Agent --> Marketing Agent: Campaign created
+Marketing Agent --> Web UI: Done, ask about promotion
+
+_: **Step 3 (Optional) — Promotion**
+
+Web UI -> Marketing Agent: User wants promotion
+Marketing Agent -> TalonOne Agent: Create promotion (A2A)
+TalonOne Agent --> Marketing Agent: Promotion created
+Marketing Agent --> Web UI: Workflow complete
