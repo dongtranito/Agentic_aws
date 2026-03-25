@@ -17,6 +17,7 @@ An AI-powered marketing campaign management platform built on AWS. Users create 
 - [Infrastructure](./components/infrastructure.md) — AWS CDK stack, constructs, and deployment configuration
 - [Web UI](./components/web-ui.md) — React/TypeScript frontend with [Cloudscape Design System](https://cloudscape.design/)
 - [Shared Agent Utilities](./components/shared-agent-utilities.md) — Common Python utilities for A2A, gateway, and configuration
+- [Session Persistence](./components/session-persistence.md) — How conversation artifacts are persisted to S3 across all agents
 
 ## Sequence Diagrams
 
