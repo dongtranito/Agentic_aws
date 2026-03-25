@@ -108,9 +108,37 @@ function buildCampaignPayload(
     target_mode,
     content,
     estimate_only: estimateOnly,
-    when: args.when ?? 'now',
     respect_frequency_caps: false,
   };
+
+  // Scheduling: build the `when` parameter
+  const scheduleStart = args.schedule_start as string | undefined;
+  const scheduleEnd = args.schedule_end as string | undefined;
+  const repeatType = args.repeat_type as string | undefined;
+  const repeatEvery = args.repeat_every as number | undefined;
+  const repeatOnDays = args.repeat_on_days_of_week as number[] | undefined;
+
+  if (repeatType && scheduleStart) {
+    // Recurring campaign
+    const whenObj: Record<string, unknown> = {
+      type: 'recurring',
+      start_time: scheduleStart,
+      repeat_type: repeatType,
+      repeats_every: repeatEvery ?? 1,
+    };
+    if (scheduleEnd) whenObj.end_by_date = scheduleEnd;
+    if (repeatOnDays) whenObj.repeat_on_days_of_week = repeatOnDays;
+    payload.when = whenObj;
+  } else if (scheduleStart) {
+    // One-time scheduled campaign
+    payload.when = {
+      type: 'later',
+      delivery_date_time: [scheduleStart],
+    };
+  } else {
+    // Immediate or simple string schedule
+    payload.when = args.when ?? 'now';
+  }
 
   // Audience targeting
   const filters = args.user_property_filters as ProfileFilter[] | undefined;

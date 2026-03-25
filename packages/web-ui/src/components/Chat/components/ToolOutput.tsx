@@ -6,6 +6,8 @@ import {
   Button,
 } from '@cloudscape-design/components';
 import { CodeView } from '@cloudscape-design/code-view';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useApi } from '../../../hooks/useApi';
 
 const OUTPUT_INLINE_LIMIT = 500;
@@ -98,7 +100,11 @@ export const ToolOutput = ({ output }: { output: string }) => {
         header="Tool Output"
         size="large"
       >
-        <CodeView content={fullContent ?? formatted} wrapLines />
+        <div className="markdown-content">
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {fullContent ?? formatted}
+          </ReactMarkdown>
+        </div>
       </Modal>
     </div>
   );

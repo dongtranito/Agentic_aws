@@ -123,7 +123,33 @@ export class ClevertapTarget extends Construct {
       },
       when: {
         type: T.STRING,
-        description: '"now" or "YYYYMMDD HH:MM". Defaults to "now".',
+        description:
+          'When to send: "now" for immediate delivery, or "YYYYMMDD HH:MM" to schedule for a specific date and time. Defaults to "now". For recurring campaigns, use the schedule_start, schedule_end, repeat_type and repeat_every parameters instead.',
+      },
+      schedule_start: {
+        type: T.STRING,
+        description:
+          'Start date/time for a scheduled or recurring campaign in "YYYYMMDD HH:MM" format. When provided, the campaign is scheduled rather than sent immediately.',
+      },
+      schedule_end: {
+        type: T.STRING,
+        description:
+          'End date for a recurring campaign in "YYYYMMDD" format. The campaign stops recurring after this date.',
+      },
+      repeat_type: {
+        type: T.STRING,
+        description:
+          'Recurrence type: "day" or "week". Required for recurring campaigns.',
+      },
+      repeat_every: {
+        type: T.INTEGER,
+        description:
+          'Recurrence interval: number of days or weeks between each run. Required for recurring campaigns.',
+      },
+      repeat_on_days_of_week: {
+        type: T.ARRAY,
+        description:
+          'Days of week for weekly recurring campaigns. Values 1 (Sun) to 7 (Sat). Required when repeat_type is "week".',
       },
       provider_nick_name: {
         type: T.STRING,

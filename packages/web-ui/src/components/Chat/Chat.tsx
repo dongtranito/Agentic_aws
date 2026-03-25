@@ -213,7 +213,11 @@ export const Chat = ({ campaignId }: ChatProps) => {
                       }
                       hideAvatar
                     >
-                      {msg.content}
+                      <div className="markdown-content">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {msg.content}
+                        </ReactMarkdown>
+                      </div>
                     </ChatBubble>
                     <div style={{ marginLeft: '8px' }}>
                       <Avatar ariaLabel="User" color="default" initials="U" />

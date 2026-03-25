@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Modal,
   Box,
@@ -7,6 +7,7 @@ import {
   FormField,
   Input,
 } from '@cloudscape-design/components';
+import type { InputProps } from '@cloudscape-design/components/input';
 import { useApi } from '../../hooks/useApi';
 import { useNavigate } from '@tanstack/react-router';
 
@@ -24,6 +25,15 @@ export const CreateCampaignModal = ({
   const [error, setError] = useState<string | null>(null);
   const api = useApi();
   const navigate = useNavigate();
+  const inputRef = useRef<InputProps.Ref>(null);
+
+  useEffect(() => {
+    if (visible) {
+      const timer = setTimeout(() => inputRef.current?.focus(), 50);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [visible]);
 
   const handleSubmit = async () => {
     if (!name.trim()) return;
@@ -83,12 +93,12 @@ export const CreateCampaignModal = ({
       <SpaceBetween size="m">
         <FormField label="Campaign Name" errorText={error}>
           <Input
+            ref={inputRef}
             value={name}
             onChange={({ detail }) => setName(detail.value)}
             onKeyDown={handleKeyDown}
             placeholder="Enter campaign name"
             disabled={loading}
-            autoFocus
           />
         </FormField>
       </SpaceBetween>
