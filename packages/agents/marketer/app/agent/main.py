@@ -2,6 +2,7 @@ import json
 
 import uvicorn
 from bedrock_agentcore.runtime.models import PingStatus
+from common.s3_artifact import current_session_id
 from fastapi import Header, Request
 from fastapi.responses import PlainTextResponse, StreamingResponse
 
@@ -19,6 +20,7 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
       - data: {"type":"tool_result","name":"...","output":"..."} when a tool completes
       - data: {"type":"subagent_progress","agent":"...","content":"..."} for subagent streaming
     """
+    current_session_id.set(session_id)
     with get_agent(session_id=session_id, actor_id=actor_id) as agent:
         pending_tool: dict | None = None
         last_tool_names: dict[str, str] = {}  # toolUseId -> tool_name

@@ -5,7 +5,7 @@ from strands import tool
 from ..utils.a2a import stream_a2a_agent
 
 
-def build_databricks_tool(agent_runtime_arn: str, region: str):
+def build_databricks_tool(agent_runtime_arn: str, region: str, session_id: str):
     """Create a tool that delegates Databricks tasks to the remote agent."""
 
     @tool
@@ -25,6 +25,7 @@ def build_databricks_tool(agent_runtime_arn: str, region: str):
             agent_runtime_arn,
             region,
             request,
+            session_id,
         ):
             yield event
 

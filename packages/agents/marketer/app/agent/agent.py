@@ -4,10 +4,10 @@ from contextlib import contextmanager
 from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig
 from bedrock_agentcore.memory.integrations.strands.session_manager import AgentCoreMemorySessionManager
 from common.config import load_configuration
+from common.s3_artifact import S3ArtifactHook
 from strands import Agent
 from strands_tools import current_time
 
-from .hooks import S3ArtifactHook
 from .worker_agents import build_clevertap_tool, build_databricks_tool, build_talonone_tool
 
 MEMORY_ID = os.environ["MEMORY_ID"]
@@ -33,9 +33,9 @@ def get_agent(session_id: str, actor_id: str):
 
     tools = [
         current_time,
-        build_databricks_tool(DATABRICKS_A2A_ENDPOINT, REGION),
-        build_clevertap_tool(CLEVERTAP_A2A_ENDPOINT, REGION),
-        build_talonone_tool(TALONONE_A2A_ENDPOINT, REGION),
+        build_databricks_tool(DATABRICKS_A2A_ENDPOINT, REGION, session_id),
+        build_clevertap_tool(CLEVERTAP_A2A_ENDPOINT, REGION, session_id),
+        build_talonone_tool(TALONONE_A2A_ENDPOINT, REGION, session_id),
     ]
 
     config = load_configuration()
@@ -97,7 +97,7 @@ your campaign — [describe current step]."
             session_manager=session_manager,
         )
 
-        s3_hook = S3ArtifactHook(session_id=session_id, actor_id=actor_id)
+        s3_hook = S3ArtifactHook(agent_id="orchestrator")
         s3_hook.register(agent.hooks)
 
         yield agent

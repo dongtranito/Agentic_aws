@@ -36,16 +36,19 @@ export class AgentConstruct extends Construct {
     const databricks = new DatabricksAgentConstruct(this, 'Databricks', {
       gateway,
       parameterPrefix,
+      sessionsBucket,
     });
 
     const clevertap = new ClevertapAgentConstruct(this, 'Clevertap', {
       gateway,
       parameterPrefix,
+      sessionsBucket,
     });
 
     const talonone = new TalononeAgentConstruct(this, 'Talonone', {
       gateway,
       parameterPrefix,
+      sessionsBucket,
     });
 
     const marketer = new MarketerAgentConstruct(this, 'Marketer', {

@@ -1,5 +1,6 @@
 import { TalononeAgent } from ':play-c463-z26-rzy-mar-tech/common-constructs';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Stack } from 'aws-cdk-lib';
 import * as agentcore from '@aws-cdk/aws-bedrock-agentcore-alpha';
 import { Construct } from 'constructs';
@@ -7,6 +8,7 @@ import { Construct } from 'constructs';
 export interface TalononeAgentConstructProps {
   gateway: agentcore.Gateway;
   parameterPrefix: string;
+  sessionsBucket: s3.IBucket;
 }
 
 export class TalononeAgentConstruct extends Construct {
@@ -20,7 +22,7 @@ export class TalononeAgentConstruct extends Construct {
   ) {
     super(scope, id);
 
-    const { gateway, parameterPrefix } = props;
+    const { gateway, parameterPrefix, sessionsBucket } = props;
 
     this.executionRole = new iam.Role(this, 'Role', {
       assumedBy: new iam.ServicePrincipal('bedrock-agentcore.amazonaws.com'),
@@ -50,12 +52,14 @@ export class TalononeAgentConstruct extends Construct {
     });
 
     gateway.grantInvoke(this.executionRole);
+    sessionsBucket.grantReadWrite(this.executionRole);
 
     this.agent = new TalononeAgent(this, 'Agent', {
       executionRole: this.executionRole,
       environmentVariables: {
         GATEWAY_URL: gateway.gatewayUrl ?? '',
         AGENT_CONFIG_PARAMETER: `${parameterPrefix}/talonone/config`,
+        ARTIFACT_BUCKET: sessionsBucket.bucketName,
       },
     });
   }

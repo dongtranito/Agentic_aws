@@ -11,7 +11,6 @@ import logging
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from urllib.parse import quote
-from uuid import uuid4
 
 import boto3
 import httpx
@@ -63,6 +62,7 @@ def _build_client_factory(
     headers = {
         "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id": session_id,
     }
+
     httpx_client = httpx.AsyncClient(
         timeout=300,
         auth=auth,
@@ -76,10 +76,11 @@ def _build_client_factory(
 def build_a2a_agent(
     agent_runtime_arn: str,
     region: str,
+    session_id: str,
 ) -> A2AAgent:
     """Build a Strands A2AAgent for an AgentCore Runtime endpoint."""
     endpoint_url = _build_endpoint_url(agent_runtime_arn, region)
-    session_id = uuid4().hex + "-" + uuid4().hex[:8]
+    logger.info(f"Building A2A agent with session_id={session_id} for {agent_runtime_arn}")
     client_factory = _build_client_factory(region, session_id)
     agent_card = _get_agent_card(agent_runtime_arn, region)
 
@@ -159,13 +160,14 @@ async def stream_a2a_agent(
     agent_runtime_arn: str,
     region: str,
     prompt: str,
+    session_id: str,
 ) -> "AsyncIterator":
     """Async generator that streams progress from a remote A2A agent.
 
     Yields SubAgentProgress for intermediate updates, then yields
     the final response string as the last item.
     """
-    a2a_agent = build_a2a_agent(agent_runtime_arn, region)
+    a2a_agent = build_a2a_agent(agent_runtime_arn, region, session_id)
     agent_name = a2a_agent.name or "subagent"
     final_text = ""
 
