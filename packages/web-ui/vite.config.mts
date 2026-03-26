@@ -1,5 +1,4 @@
 import tailwindcss from '@tailwindcss/vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { resolve } from 'path';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 /// <reference types='vitest' />
@@ -27,8 +26,10 @@ export default defineConfig(() => ({
     }),
     react(),
     tailwindcss(),
-    tsconfigPaths(),
   ],
+  resolve: {
+    tsconfigPaths: true,
+  },
   build: {
     outDir: '../../dist/packages/web-ui',
     emptyOutDir: true,
