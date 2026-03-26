@@ -1,3 +1,7 @@
+# Copyright 2026 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: LicenseRef-.amazon.com.-AmznSL-1.0
+# Licensed under the Amazon Software License  https://aws.amazon.com/asl/
+
 """
 Shared S3 Artifact Hook for storing conversation artifacts to S3.
 

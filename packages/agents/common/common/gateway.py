@@ -1,8 +1,6 @@
-"""AgentCore Gateway MCP Client with SigV4 authentication.
-
-Shared factory for creating MCP clients that connect to AgentCore Gateway
-and filter tools by gateway target name.
-"""
+# Copyright 2026 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: LicenseRef-.amazon.com.-AmznSL-1.0
+# Licensed under the Amazon Software License  https://aws.amazon.com/asl/
 
 import hashlib
 import os

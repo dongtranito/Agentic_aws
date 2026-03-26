@@ -1,7 +1,6 @@
-"""AWS SigV4 authentication for HTTPX clients.
-
-Based on: aws-samples/sample-strands-agent-with-agentcore
-"""
+# Copyright 2026 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: LicenseRef-.amazon.com.-AmznSL-1.0
+# Licensed under the Amazon Software License  https://aws.amazon.com/asl/
 
 from collections.abc import Generator
 from typing import Any

@@ -1,7 +1,7 @@
 {
   "name": "@play-c463-z26-rzy-mar-tech/source",
   "version": "0.0.0",
-  "license": "MIT",
+  "license": "ASL",
   "scripts": {
     "build:all": "nx run-many --target build --all",
     "affected:all": "nx affected --target build"

@@ -1,3 +1,6 @@
+license = "ASL"
+license-files = [ "LICENSE" ]
+
 [tool.coverage.run]
 branch = true
 source = [ "app" ]

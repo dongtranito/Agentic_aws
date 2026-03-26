@@ -1,3 +1,6 @@
+// Copyright 2026 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: LicenseRef-.amazon.com.-AmznSL-1.0
+// Licensed under the Amazon Software License  https://aws.amazon.com/asl/
 /**
  * CDK construct that seeds SSM Parameter Store with default agent configurations.
  * Uses a CloudFormation Custom Resource that only creates parameters on initial

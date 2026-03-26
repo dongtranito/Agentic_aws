@@ -1,3 +1,6 @@
+# Copyright 2026 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: LicenseRef-.amazon.com.-AmznSL-1.0
+# Licensed under the Amazon Software License  https://aws.amazon.com/asl/
 """A2A utility helpers for AgentCore runtimes.
 
 Uses the Strands A2AAgent class for protocol communication, with

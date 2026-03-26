@@ -1,3 +1,6 @@
+license = "ASL"
+license-files = [ "LICENSE" ]
+
 [project]
 name = "nx-workspace"
 version = "1.0.0"

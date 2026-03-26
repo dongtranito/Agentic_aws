@@ -1,7 +1,6 @@
-/**
- * Type declarations for the AWS Lambda streaming runtime globals.
- * These are available in the Node.js 18+ Lambda runtime when using response streaming.
- */
+// Copyright 2026 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: LicenseRef-.amazon.com.-AmznSL-1.0
+// Licensed under the Amazon Software License  https://aws.amazon.com/asl/
 
 type StreamifyHandler = (
   event: import('aws-lambda').APIGatewayProxyEvent,

@@ -1,7 +1,9 @@
+// Copyright 2026 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: LicenseRef-.amazon.com.-AmznSL-1.0
+// Licensed under the Amazon Software License  https://aws.amazon.com/asl/
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
-/// <reference types='vitest' />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 

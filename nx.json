@@ -77,6 +77,7 @@
     },
     "lint": {
       "cache": true,
+      "syncGenerators": ["@aws/nx-plugin:license#sync"],
       "configurations": {
         "fix": {
           "fix": true

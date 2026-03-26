@@ -1,4 +1,4 @@
-# play-c463-z26-rzy-mar-tech
+# Agentic AI for Martech
 
 An AI-powered marketing campaign management platform built on AWS. Users can create and manage marketing campaigns through a web interface and interact with an AI agent via chat to execute marketing tasks.
 
@@ -82,3 +82,7 @@ Then re-run your build/deploy commands.
 ### WebUI `Network Error`
 
 The Web-UI may return `Network Error` during the chat. To fix, just refresh the page to get the update from the agent. If the answer seems like it's not completed yet, refresh again.
+
+## License
+
+This project is licensed under the [Amazon Software License](https://aws.amazon.com/asl/) (SPDX: `LicenseRef-.amazon.com.-AmznSL-1.0`). See the [LICENSE](./LICENSE) file for details.
