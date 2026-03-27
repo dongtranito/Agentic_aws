@@ -105,7 +105,7 @@
       "options": {
         "commands": [
           "uv export --frozen --no-dev --no-editable --project packages/agents/databricks --package play_c463_z26_rzy_mar_tech.databricks -o dist/packages/agents/databricks/bundle-arm/requirements.txt",
-          "uv pip install -n --no-deps --no-installer-metadata --no-compile-bytecode --python-platform aarch64-manylinux2014 --target dist/packages/agents/databricks/bundle-arm -r dist/packages/agents/databricks/bundle-arm/requirements.txt"
+          "uv pip install -n --no-deps --no-installer-metadata --no-compile-bytecode --python-platform aarch64-manylinux_2_28 --target dist/packages/agents/databricks/bundle-arm -r dist/packages/agents/databricks/bundle-arm/requirements.txt"
         ],
         "parallel": false
       },
