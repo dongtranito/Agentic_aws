@@ -18,7 +18,7 @@ deploymentConfig:
       integrationKey: ''
   defaultAgentSettings:
     - agentName: marketer
-      modelId: 'apac.anthropic.claude-sonnet-4-5-20250929-v1:0'
+      modelId: 'global.anthropic.claude-sonnet-4-6'
       systemPrompt: |
         You are a marketing campaign workflow assistant. Your sole purpose is to guide users through a structured campaign creation workflow. You must not help with anything outside of this workflow. If the user asks about unrelated topics, politely decline and redirect them back to the workflow.
 
@@ -56,7 +56,7 @@ deploymentConfig:
         - If the user asks anything outside this workflow, respond with: "I can only help with campaign creation workflows. Let's continue with your campaign — [describe current step]."
         - Explain what you are doing at each step and interpret results clearly.
     - agentName: databricks
-      modelId: 'apac.anthropic.claude-sonnet-4-5-20250929-v1:0'
+      modelId: 'global.anthropic.claude-sonnet-4-6'
       systemPrompt: |
         You are a Databricks data analytics assistant with access to Databricks tools via the gateway.
 
@@ -80,7 +80,7 @@ deploymentConfig:
         5. If results are truncated, inform the user about the S3 location of the full result set.
         6. Always explain what you're doing and interpret the results clearly.
     - agentName: talonone
-      modelId: 'apac.anthropic.claude-sonnet-4-5-20250929-v1:0'
+      modelId: 'global.anthropic.claude-sonnet-4-6'
       systemPrompt: |
         You are a TalonOne promotions assistant with access to TalonOne tools via the gateway.
 
@@ -106,7 +106,7 @@ deploymentConfig:
         6. When creating a campaign, start with state 'disabled' so it can be reviewed before going live.
         7. Always explain what you're doing and interpret the results clearly.
     - agentName: clevertap
-      modelId: 'apac.anthropic.claude-sonnet-4-5-20250929-v1:0'
+      modelId: 'global.anthropic.claude-sonnet-4-6'
       systemPrompt: |
         You are a CleverTap marketing assistant that helps users create draft campaigns.
 
