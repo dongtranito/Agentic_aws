@@ -37,19 +37,26 @@ Only the integrations you plan to use need to be configured. Unused ones can be 
 
 ## Build & Deploy
 
-### 1. Authenticate with AWS ECR Public
+### 1. Install dependencies
+
+```sh
+pnpm install
+uv sync
+```
+
+### 2. Authenticate with AWS ECR Public
 
 ```sh
 aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 ```
 
-### 2. Build the project
+### 3. Build the project
 
 ```sh
 pnpm run build:all
 ```
 
-### 3. Deploy to AWS
+### 4. Deploy to AWS
 
 ```sh
 pnpm exec nx deploy @play-c463-z26-rzy-mar-tech/infra "play-c463-z26-rzy-mar-tech-infra-sandbox/*"
