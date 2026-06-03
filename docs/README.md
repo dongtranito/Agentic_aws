@@ -18,6 +18,7 @@ An AI-powered marketing campaign management platform built on AWS. Users create 
 - [Web UI](./components/web-ui.md) — React/TypeScript frontend with [Cloudscape Design System](https://cloudscape.design/)
 - [Shared Agent Utilities](./components/shared-agent-utilities.md) — Common Python utilities for A2A, gateway, and configuration
 - [Session Persistence](./components/session-persistence.md) — How conversation artifacts are persisted to S3 across all agents
+- [Agentic AI Build Guide](./components/agentic-ai-build-guide.md) — End-to-end guide for agent structure, Bedrock integration, and UI/API/agent flow
 
 ## Sequence Diagrams
 
