@@ -4,12 +4,16 @@
 /**
  * CleverTap MCP Server Lambda Handler
  * All tools call CleverTap APIs directly. Credentials from Secrets Manager.
+ *
+ * [VI] Lambda Handler cho MCP Server của CleverTap.
+ * Tất cả các công cụ gọi trực tiếp các API của CleverTap. Thông tin xác thực lấy từ Secrets Manager.
  */
 
 import { GatewayContext, extractToolName, getSecret } from './utils/index.js';
 
 // ---------------------------------------------------------------------------
 // CleverTap credentials & API client
+// [VI] Thông tin xác thực CleverTap & client gọi API
 // ---------------------------------------------------------------------------
 
 const CLEVERTAP_SECRET_ARN = process.env.CLEVERTAP_SECRET_ARN ?? '';
@@ -33,6 +37,7 @@ async function ctFetch(
   const creds = await getSecret<ClevertapCredentials>(CLEVERTAP_SECRET_ARN);
   const url = `${getBaseUrl(creds.region)}${path}`;
 
+  // [VI] Ghi log yêu cầu gửi tới API CleverTap (URL và nội dung body)
   console.log('CleverTap API request:', { url, body });
 
   const resp = await fetch(url, {
@@ -46,6 +51,7 @@ async function ctFetch(
   });
 
   const result = await resp.json();
+  // [VI] Ghi log phản hồi từ API CleverTap (mã trạng thái và nội dung body)
   console.log('CleverTap API response:', {
     status: resp.status,
     body: JSON.stringify(result),
@@ -56,6 +62,7 @@ async function ctFetch(
 
 // ---------------------------------------------------------------------------
 // Tool implementations — all CleverTap API calls
+// [VI] Phần hiện thực các công cụ — tất cả đều là lệnh gọi API CleverTap
 // ---------------------------------------------------------------------------
 
 interface ProfileFilter {
@@ -67,6 +74,9 @@ interface ProfileFilter {
 /**
  * Builds a CQL where clause from user_property_filters.
  * Each filter is { name, operator, value } targeting a CleverTap profile field.
+ *
+ * [VI] Tạo mệnh đề where (CQL) từ user_property_filters.
+ * Mỗi bộ lọc có dạng { name, operator, value } nhắm tới một trường hồ sơ (profile) của CleverTap.
  */
 function buildWhereClause(
   filters: ProfileFilter[],
@@ -96,6 +106,9 @@ function buildWhereClause(
 /**
  * Builds the common campaign payload from tool args.
  * Returns null + error if required fields are missing.
+ *
+ * [VI] Tạo payload chung cho chiến dịch từ các tham số của công cụ.
+ * Trả về lỗi nếu thiếu các trường bắt buộc.
  */
 function buildCampaignPayload(
   args: Record<string, unknown>,
@@ -115,6 +128,7 @@ function buildCampaignPayload(
   };
 
   // Scheduling: build the `when` parameter
+  // [VI] Lập lịch: tạo tham số `when`
   const scheduleStart = args.schedule_start as string | undefined;
   const scheduleEnd = args.schedule_end as string | undefined;
   const repeatType = args.repeat_type as string | undefined;
@@ -123,6 +137,7 @@ function buildCampaignPayload(
 
   if (repeatType && scheduleStart) {
     // Recurring campaign
+    // [VI] Chiến dịch lặp lại theo chu kỳ
     const whenObj: Record<string, unknown> = {
       type: 'recurring',
       start_time: scheduleStart,
@@ -134,16 +149,19 @@ function buildCampaignPayload(
     payload.when = whenObj;
   } else if (scheduleStart) {
     // One-time scheduled campaign
+    // [VI] Chiến dịch lên lịch chạy một lần
     payload.when = {
       type: 'later',
       delivery_date_time: [scheduleStart],
     };
   } else {
     // Immediate or simple string schedule
+    // [VI] Chạy ngay lập tức hoặc lịch dạng chuỗi đơn giản
     payload.when = args.when ?? 'now';
   }
 
   // Audience targeting
+  // [VI] Nhắm mục tiêu đối tượng (audience)
   const filters = args.user_property_filters as ProfileFilter[] | undefined;
   const eventFilter = args.event_filter as Record<string, unknown> | undefined;
 
@@ -162,6 +180,7 @@ function buildCampaignPayload(
   if (args.labels) payload.labels = args.labels;
 
   // Webhook-specific fields (must be top-level)
+  // [VI] Các trường riêng cho webhook (phải nằm ở cấp cao nhất - top-level)
   if (args.webhook_endpoint_name)
     payload.webhook_endpoint_name = args.webhook_endpoint_name;
   if (args.webhook_fields) payload.webhook_fields = args.webhook_fields;
@@ -172,6 +191,7 @@ function buildCampaignPayload(
 }
 
 /** POST /1/targets/create.json with estimate_only=true */
+/* [VI] Gọi POST /1/targets/create.json với estimate_only=true (chỉ ước lượng, chưa tạo thật) */
 async function createDraftCampaign(
   args: Record<string, unknown>,
 ): Promise<unknown> {
@@ -181,6 +201,7 @@ async function createDraftCampaign(
 }
 
 /** POST /1/targets/create.json with estimate_only=false */
+/* [VI] Gọi POST /1/targets/create.json với estimate_only=false (tạo chiến dịch thật) */
 async function confirmDraftCampaign(
   args: Record<string, unknown>,
 ): Promise<unknown> {
@@ -190,6 +211,7 @@ async function confirmDraftCampaign(
 }
 
 /** POST /1/targets/create.json with estimate_only=true (re-validate) */
+/* [VI] Gọi POST /1/targets/create.json với estimate_only=true (xác thực lại) */
 async function updateDraftCampaign(
   args: Record<string, unknown>,
 ): Promise<unknown> {
@@ -197,6 +219,7 @@ async function updateDraftCampaign(
 }
 
 /** POST /1/targets/list.json */
+/* [VI] Gọi POST /1/targets/list.json (liệt kê các chiến dịch) */
 async function listDraftCampaigns(
   args: Record<string, unknown>,
 ): Promise<unknown> {
@@ -211,6 +234,7 @@ async function listDraftCampaigns(
 }
 
 /** POST /1/targets/result.json */
+/* [VI] Gọi POST /1/targets/result.json (lấy chi tiết một chiến dịch) */
 async function getDraftCampaign(
   args: Record<string, unknown>,
 ): Promise<unknown> {
@@ -222,6 +246,7 @@ async function getDraftCampaign(
 }
 
 /** POST /1/targets/stop.json */
+/* [VI] Gọi POST /1/targets/stop.json (hủy/dừng một chiến dịch nháp) */
 async function discardDraftCampaign(
   args: Record<string, unknown>,
 ): Promise<unknown> {
@@ -234,6 +259,7 @@ async function discardDraftCampaign(
 
 // ---------------------------------------------------------------------------
 // Router
+// [VI] Bộ định tuyến (router) — chọn công cụ phù hợp để xử lý yêu cầu
 // ---------------------------------------------------------------------------
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
@@ -256,6 +282,7 @@ export const handler = async (
       context.clientContext?.custom?.bedrockAgentCoreToolName || '';
     const toolName = extractToolName(fullToolName);
 
+    // [VI] Ghi log yêu cầu MCP của CleverTap
     console.log('CleverTap MCP request:', { fullToolName, toolName, event });
 
     const toolHandler = toolRegistry[toolName];
@@ -265,6 +292,7 @@ export const handler = async (
 
     return await toolHandler(event);
   } catch (err) {
+    // [VI] Ghi log lỗi MCP của CleverTap
     console.error('CleverTap MCP error:', err);
     return {
       error: err instanceof Error ? err.message : 'Internal server error',

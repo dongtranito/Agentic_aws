@@ -10,6 +10,7 @@ const app = new App();
 const deploymentConfig = loadDeploymentConfig();
 
 // Use this to deploy your own sandbox environment (assumes your CLI credentials)
+// [VI] Dùng đoạn này để triển khai môi trường sandbox riêng của bạn (giả định dùng thông tin xác thực từ CLI)
 new ApplicationStage(app, 'play-c463-z26-rzy-mar-tech-infra-sandbox', {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,

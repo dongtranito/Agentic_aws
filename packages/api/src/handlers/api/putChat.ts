@@ -15,6 +15,8 @@ const AGENT_RUNTIME_ARN = process.env.AGENT_RUNTIME_ARN!;
 
 /**
  * Extract user ID (sub) from Cognito JWT token
+ *
+ * [VI] Trích xuất user ID (trường "sub") từ token JWT của Cognito
  */
 function extractActorId(event: APIGatewayProxyEvent): string {
   return event.requestContext.authorizer?.claims?.sub as string;
@@ -23,6 +25,9 @@ function extractActorId(event: APIGatewayProxyEvent): string {
 /**
  * Streaming Lambda handler for PUT /chat
  * Invokes the AgentCore runtime and streams the response.
+ *
+ * [VI] Lambda handler dạng streaming cho PUT /chat
+ * Gọi AgentCore runtime và truyền (stream) phản hồi về.
  */
 export const handler = awslambda.streamifyResponse(
   async (
@@ -58,10 +63,12 @@ export const handler = awslambda.streamifyResponse(
       const actorId = extractActorId(event);
 
       // runtimeSessionId must be at least 33 characters
+      // [VI] runtimeSessionId phải dài tối thiểu 33 ký tự
       const runtimeSessionId = `session-${sessionId}`;
 
       const payload = JSON.stringify({ prompt, actorId });
 
+      // [VI] Ghi log thông tin gọi agent (ARN runtime, session, actor và prompt)
       console.log('Invoking agent with:', {
         agentRuntimeArn: AGENT_RUNTIME_ARN,
         sessionId: runtimeSessionId,
@@ -88,6 +95,7 @@ export const handler = awslambda.streamifyResponse(
         }
       }
     } catch (err) {
+      // [VI] Ghi log lỗi khi gọi agent runtime
       console.error('Error invoking agent runtime:', err);
       responseStream.write(
         JSON.stringify({ error: 'Unable to execute the request' }),

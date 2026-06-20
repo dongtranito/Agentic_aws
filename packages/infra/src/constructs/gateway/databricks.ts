@@ -64,6 +64,7 @@ export class DatabricksTarget extends Construct {
 
     const toolSchema = agentcore.ToolSchema.fromInline([
       // SQL Statement Execution API
+      // [VI] API thực thi câu lệnh SQL
       {
         name: 'execute_sql',
         description:
@@ -108,6 +109,7 @@ export class DatabricksTarget extends Construct {
         },
       },
       // SQL Warehouses API
+      // [VI] API quản lý SQL Warehouse
       {
         name: 'list_warehouses',
         description:
@@ -118,6 +120,7 @@ export class DatabricksTarget extends Construct {
         },
       },
       // Unity Catalog APIs
+      // [VI] Các API của Unity Catalog
       {
         name: 'list_schemas',
         description:
@@ -165,6 +168,7 @@ export class DatabricksTarget extends Construct {
         },
       },
       // Jobs API
+      // [VI] API quản lý Job
       {
         name: 'run_job',
         description:

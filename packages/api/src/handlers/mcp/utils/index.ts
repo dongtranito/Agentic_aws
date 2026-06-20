@@ -8,6 +8,8 @@ import {
 
 /**
  * Shared utilities for AgentCore Gateway MCP Lambda handlers
+ *
+ * [VI] Các tiện ích dùng chung cho các Lambda handler MCP của AgentCore Gateway
  */
 
 export interface GatewayClientContext {
@@ -28,6 +30,9 @@ export interface GatewayContext {
 /**
  * Extracts the tool name from the full Gateway tool name.
  * Gateway format: ${target_name}___${tool_name} (three underscores)
+ *
+ * [VI] Trích xuất tên công cụ từ tên công cụ đầy đủ của Gateway.
+ * Định dạng của Gateway: ${target_name}___${tool_name} (ba dấu gạch dưới)
  */
 export function extractToolName(fullToolName: string): string {
   const delimiter = '___';
@@ -43,6 +48,9 @@ const secretCache = new Map<string, unknown>();
 /**
  * Fetches and caches a JSON secret from Secrets Manager.
  * Results are cached for the lifetime of the Lambda execution context.
+ *
+ * [VI] Lấy và lưu đệm (cache) một secret dạng JSON từ Secrets Manager.
+ * Kết quả được lưu đệm trong suốt vòng đời của ngữ cảnh thực thi Lambda.
  */
 export async function getSecret<T>(secretArn: string): Promise<T> {
   const cached = secretCache.get(secretArn);

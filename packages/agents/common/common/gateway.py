@@ -17,7 +17,10 @@ from strands.tools.mcp.mcp_client import MCPClient
 
 
 class SigV4HTTPXAuth(httpx.Auth):
-    """HTTPX Auth class that signs requests with AWS SigV4."""
+    """HTTPX Auth class that signs requests with AWS SigV4.
+
+    [VI] Lớp xác thực HTTPX dùng để ký các request bằng AWS SigV4.
+    """
 
     def __init__(self, credentials: Any, region: str):
         self.credentials = credentials
@@ -52,6 +55,15 @@ def get_gateway_mcp_client(target_name: str) -> MCPClient:
     Args:
         target_name: The gateway target name (e.g. 'databricks-target').
             Tools are filtered by the pattern '{target_name}___'.
+
+    [VI] Tạo một MCP Client cho một target gateway cụ thể.
+
+    Kết nối tới AgentCore Gateway bằng xác thực SigV4 và lọc các công cụ
+    để chỉ giữ lại những công cụ thuộc về target được chỉ định.
+
+    Tham số:
+        target_name: Tên target của gateway (vd: 'databricks-target').
+            Các công cụ được lọc theo mẫu '{target_name}___'.
     """
     gateway_url = os.environ["GATEWAY_URL"]
     region = os.environ.get("AWS_REGION", "us-east-1")

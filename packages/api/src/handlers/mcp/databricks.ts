@@ -7,6 +7,12 @@
  * SQL Warehouses, Unity Catalog, and Jobs APIs.
  *
  * Large SQL results are truncated and the full data is uploaded to S3.
+ *
+ * [VI] Lambda Handler cho MCP Server của Databricks.
+ * Hiện thực các lệnh gọi API Databricks thật qua các API: SQL Statement Execution,
+ * SQL Warehouses, Unity Catalog và Jobs.
+ *
+ * Kết quả SQL lớn sẽ bị cắt bớt (truncate) và toàn bộ dữ liệu đầy đủ được tải lên S3.
  */
 
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
@@ -58,6 +64,7 @@ async function databricksApi(
 }
 
 // --- Result truncation ---
+// [VI] --- Cắt bớt kết quả ---
 
 interface SqlResult {
   manifest?: { schema?: { columns?: unknown[] } };
@@ -78,6 +85,7 @@ async function truncateIfNeeded(result: unknown): Promise<unknown> {
   if (!needsTruncation) return result;
 
   // Upload full result to S3
+  // [VI] Tải toàn bộ kết quả đầy đủ lên S3
   const key = `results/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`;
   await s3.send(
     new PutObjectCommand({
@@ -89,11 +97,13 @@ async function truncateIfNeeded(result: unknown): Promise<unknown> {
   );
 
   const s3Uri = `s3://${SQL_RESULTS_BUCKET}/${key}`;
+  // [VI] Ghi log: kết quả đã cắt bớt được tải lên S3 (kèm số dòng và số byte)
   console.log(
     `Truncated result uploaded to ${s3Uri} (${rows.length} rows, ${fullJson.length} bytes)`,
   );
 
   // Return truncated preview
+  // [VI] Trả về bản xem trước đã cắt bớt
   return {
     ...sqlResult,
     result: {
@@ -110,6 +120,7 @@ async function truncateIfNeeded(result: unknown): Promise<unknown> {
 }
 
 // --- SQL Statement Execution API ---
+// [VI] --- API thực thi câu lệnh SQL ---
 
 async function executeSql(args: Record<string, unknown>): Promise<unknown> {
   const { query, warehouse_id, catalog, schema, row_limit, wait_timeout } =
@@ -140,12 +151,14 @@ async function getStatementResult(
 }
 
 // --- SQL Warehouses API ---
+// [VI] --- API quản lý SQL Warehouse ---
 
 async function listWarehouses(): Promise<unknown> {
   return databricksApi('GET', '/api/2.0/sql/warehouses');
 }
 
 // --- Unity Catalog APIs ---
+// [VI] --- Các API của Unity Catalog ---
 
 async function listSchemas(args: Record<string, unknown>): Promise<unknown> {
   const { catalog_name } = args;
@@ -172,6 +185,7 @@ async function getTable(args: Record<string, unknown>): Promise<unknown> {
 }
 
 // --- Jobs API ---
+// [VI] --- API quản lý Job ---
 
 async function runJob(args: Record<string, unknown>): Promise<unknown> {
   const { job_id, notebook_params, jar_params, python_params } = args;
@@ -190,6 +204,7 @@ async function getJobRun(args: Record<string, unknown>): Promise<unknown> {
 }
 
 // --- Tool registry ---
+// [VI] --- Bảng đăng ký công cụ (tool registry) ---
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
 
@@ -213,6 +228,7 @@ export const handler = async (
       context.clientContext?.custom?.bedrockAgentCoreToolName || '';
     const toolName = extractToolName(fullToolName);
 
+    // [VI] Ghi log yêu cầu MCP của Databricks (tên công cụ đầy đủ, tên công cụ, sự kiện)
     console.log('Databricks MCP request:', {
       fullToolName,
       toolName,
@@ -226,6 +242,7 @@ export const handler = async (
 
     return await toolHandler(event);
   } catch (err) {
+    // [VI] Ghi log lỗi MCP của Databricks
     console.error('Databricks MCP error:', err);
     return {
       error: err instanceof Error ? err.message : 'Internal server error',

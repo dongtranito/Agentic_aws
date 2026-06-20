@@ -11,9 +11,12 @@ import React, {
 } from 'react';
 
 // Consider specifying types if desired
+// [VI] Có thể chỉ định kiểu (type) cụ thể tại đây nếu muốn
 
 /**
  * Context for storing the runtimeConfig.
+ *
+ * [VI] Context dùng để lưu trữ runtimeConfig (cấu hình chạy thực tế).
  */
 export const RuntimeConfigContext = createContext<IRuntimeConfig | undefined>(
   undefined,
@@ -22,6 +25,9 @@ export const RuntimeConfigContext = createContext<IRuntimeConfig | undefined>(
 /**
  * Apply any overrides to point to local servers/resources here
  * for the serve-local target
+ *
+ * [VI] Áp dụng các ghi đè (override) ở đây để trỏ tới server/tài nguyên cục bộ
+ * cho mục tiêu serve-local
  */
 const applyOverrides = (runtimeConfig: IRuntimeConfig) => {
   if (import.meta.env.MODE === 'serve-local') {
@@ -34,6 +40,10 @@ const applyOverrides = (runtimeConfig: IRuntimeConfig) => {
  * Sets up the runtimeConfig.
  *
  * This assumes a runtime-config.json file is present at '/'.
+ *
+ * [VI] Thiết lập runtimeConfig.
+ *
+ * Giả định rằng có một file runtime-config.json nằm tại đường dẫn '/'.
  */
 const RuntimeConfigProvider: React.FC<PropsWithChildren> = ({ children }) => {
   const [runtimeConfig, setRuntimeConfig] = useState<

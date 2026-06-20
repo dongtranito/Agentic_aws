@@ -26,6 +26,8 @@ import { suppressRules } from '../../core/checkov.js';
 
 /**
  * Integration configuration for an API endpoint
+ *
+ * [VI] Cấu hình tích hợp (integration) cho một endpoint của API
  */
 export interface ApiIntegration {
   handler: Function;
@@ -34,48 +36,70 @@ export interface ApiIntegration {
 
 /**
  * Properties for creating the Api construct
+ *
+ * [VI] Các thuộc tính để tạo construct Api
  */
 export interface ApiProps {
   /**
    * Identity details for Cognito Authentication
+   *
+   * [VI] Thông tin định danh cho việc xác thực qua Cognito
    */
   identity: {
     userPool: IUserPool;
   };
   /**
    * Lambda handler for GET /campaign/:id
+   *
+   * [VI] Lambda handler cho GET /campaign/:id
    */
   getCampaign: ApiIntegration;
   /**
    * Lambda handler for GET /campaign
+   *
+   * [VI] Lambda handler cho GET /campaign
    */
   getCampaigns: ApiIntegration;
   /**
    * Lambda handler for POST /campaign
+   *
+   * [VI] Lambda handler cho POST /campaign
    */
   createCampaign: ApiIntegration;
   /**
    * Lambda handler for PUT /chat (streaming)
+   *
+   * [VI] Lambda handler cho PUT /chat (dạng streaming)
    */
   putChat: ApiIntegration;
   /**
    * Lambda handler for GET /chat/:sessionId
+   *
+   * [VI] Lambda handler cho GET /chat/:sessionId
    */
   getChatHistory: ApiIntegration;
   /**
    * Lambda handler for GET /sql-result/{key+}
+   *
+   * [VI] Lambda handler cho GET /sql-result/{key+}
    */
   getSqlResult: ApiIntegration;
   /**
    * Lambda handler for GET /configuration/models
+   *
+   * [VI] Lambda handler cho GET /configuration/models
    */
   listBedrockModels: ApiIntegration;
   /**
    * Lambda handler for GET /configuration/{agentName}
+   *
+   * [VI] Lambda handler cho GET /configuration/{agentName}
    */
   getAgentConfig: ApiIntegration;
   /**
    * Lambda handler for PUT /configuration/{agentName}
+   *
+   * [VI] Lambda handler cho PUT /configuration/{agentName}
    */
   putAgentConfig: ApiIntegration;
 }
@@ -84,6 +108,10 @@ export interface ApiProps {
  * A CDK construct that creates a simple REST API with two endpoints:
  * - GET /campaign/:id - Get campaign details
  * - PUT /chat - Streaming chat endpoint
+ *
+ * [VI] Một CDK construct tạo ra một REST API đơn giản với các endpoint:
+ * - GET /campaign/:id - Lấy chi tiết chiến dịch
+ * - PUT /chat - Endpoint trò chuyện dạng streaming
  */
 export class Api extends Construct {
   public readonly api: CdkRestApi;
@@ -144,6 +172,7 @@ export class Api extends Construct {
       policy: new PolicyDocument({
         statements: [
           // Allow all requests - Cognito authorizer handles authentication
+          // [VI] Cho phép mọi request — việc xác thực do Cognito authorizer đảm nhiệm
           new PolicyStatement({
             effect: Effect.ALLOW,
             principals: [new AnyPrincipal()],
@@ -168,6 +197,7 @@ export class Api extends Construct {
     );
 
     // GET /campaign, POST /campaign, GET /campaign/{id}
+    // [VI] GET /campaign, POST /campaign, GET /campaign/{id}
     const campaignResource = this.api.root.addResource('campaign');
     campaignResource.addMethod('GET', getCampaigns.integration);
     campaignResource.addMethod('POST', createCampaign.integration);
@@ -175,17 +205,20 @@ export class Api extends Construct {
     campaignIdResource.addMethod('GET', getCampaign.integration);
 
     // PUT /chat, GET /chat/{sessionId}
+    // [VI] PUT /chat, GET /chat/{sessionId}
     const chatResource = this.api.root.addResource('chat');
     chatResource.addMethod('PUT', putChat.integration);
     const chatSessionResource = chatResource.addResource('{sessionId}');
     chatSessionResource.addMethod('GET', getChatHistory.integration);
 
     // GET /sql-result/{key+}
+    // [VI] GET /sql-result/{key+}
     const sqlResultResource = this.api.root.addResource('sql-result');
     const sqlResultKeyResource = sqlResultResource.addResource('{key+}');
     sqlResultKeyResource.addMethod('GET', getSqlResult.integration);
 
     // GET /configuration/models, GET /configuration/{agentName}, PUT /configuration/{agentName}
+    // [VI] GET /configuration/models, GET /configuration/{agentName}, PUT /configuration/{agentName}
     const configResource = this.api.root.addResource('configuration');
     const configModelsResource = configResource.addResource('models');
     configModelsResource.addMethod('GET', listBedrockModels.integration);
@@ -194,6 +227,7 @@ export class Api extends Construct {
     configAgentResource.addMethod('PUT', putAgentConfig.integration);
 
     // Register the API URL in runtime configuration
+    // [VI] Đăng ký URL của API vào cấu hình chạy thực tế (runtime configuration)
     RuntimeConfig.ensure(this).config.apis = {
       ...RuntimeConfig.ensure(this).config.apis!,
       Api: this.api.url!,
@@ -202,6 +236,8 @@ export class Api extends Construct {
 
   /**
    * Restricts CORS to the website CloudFront distribution domains
+   *
+   * [VI] Giới hạn CORS chỉ cho các domain của CloudFront distribution của website
    */
   public restrictCorsTo(
     ...websites: { cloudFrontDistribution: Distribution }[]
@@ -241,6 +277,8 @@ export class Api extends Construct {
 
   /**
    * Grants IAM permissions to invoke any method on this API.
+   *
+   * [VI] Cấp quyền IAM để gọi bất kỳ phương thức nào trên API này.
    */
   public grantInvokeAccess(grantee: IGrantable) {
     this.api.addToResourcePolicy(

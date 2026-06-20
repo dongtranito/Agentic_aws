@@ -13,6 +13,7 @@ export const loadDeploymentConfig = (): IDeploymentConfig => {
     const configValidated = DeploymentConfigSchema.parse(cfgLoaded);
     return configValidated as IDeploymentConfig;
   } catch (err) {
+    // [VI] Ghi log lỗi khi xác thực schema cấu hình. Dừng chương trình.
     console.error('Error validating configuration schema. Quitting.');
     throw err;
   }

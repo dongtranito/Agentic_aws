@@ -50,6 +50,7 @@ export class APIConstruct extends Construct {
     } = props;
 
     // Lambda for GET /campaign/:id
+    // [VI] Lambda cho GET /campaign/:id (lấy một chiến dịch theo ID)
     const getCampaignHandler = new lambda.Function(this, 'GetCampaignHandler', {
       runtime: lambda.Runtime.NODEJS_LATEST,
       handler: 'index.handler',
@@ -70,6 +71,7 @@ export class APIConstruct extends Construct {
     );
 
     // Lambda for GET /campaign (list all)
+    // [VI] Lambda cho GET /campaign (liệt kê tất cả chiến dịch)
     const getCampaignsHandler = new lambda.Function(
       this,
       'GetCampaignsHandler',
@@ -95,6 +97,7 @@ export class APIConstruct extends Construct {
     );
 
     // Lambda for POST /campaign
+    // [VI] Lambda cho POST /campaign (tạo chiến dịch mới)
     const createCampaignHandler = new lambda.Function(
       this,
       'CreateCampaignHandler',
@@ -119,6 +122,7 @@ export class APIConstruct extends Construct {
     );
 
     // Lambda for PUT /chat (streaming)
+    // [VI] Lambda cho PUT /chat (dạng streaming)
     const putChatHandler = new lambda.Function(this, 'PutChatHandler', {
       runtime: lambda.Runtime.NODEJS_LATEST,
       handler: 'index.handler',
@@ -132,6 +136,7 @@ export class APIConstruct extends Construct {
     marketerAgent.agentCoreRuntime.grantInvoke(putChatHandler);
 
     // Lambda for GET /chat/:sessionId (chat history)
+    // [VI] Lambda cho GET /chat/:sessionId (lịch sử trò chuyện)
     const getChatHistoryHandler = new lambda.Function(
       this,
       'GetChatHistoryHandler',
@@ -150,6 +155,7 @@ export class APIConstruct extends Construct {
     memory.grantFullAccess(getChatHistoryHandler);
 
     // Lambda for GET /sql-result/{key+}
+    // [VI] Lambda cho GET /sql-result/{key+} (lấy kết quả SQL)
     const getSqlResultHandler = new lambda.Function(
       this,
       'GetSqlResultHandler',
@@ -168,6 +174,7 @@ export class APIConstruct extends Construct {
     sqlResultsBucket.grantRead(getSqlResultHandler);
 
     // Lambda for GET /configuration/models
+    // [VI] Lambda cho GET /configuration/models (liệt kê các mô hình)
     const listBedrockModelsHandler = new lambda.Function(
       this,
       'ListBedrockModelsHandler',
@@ -192,6 +199,7 @@ export class APIConstruct extends Construct {
     );
 
     // Lambda for GET /configuration/{agentName}
+    // [VI] Lambda cho GET /configuration/{agentName} (lấy cấu hình agent)
     const getAgentConfigHandler = new lambda.Function(
       this,
       'GetAgentConfigHandler',
@@ -218,6 +226,7 @@ export class APIConstruct extends Construct {
     );
 
     // Lambda for PUT /configuration/{agentName}
+    // [VI] Lambda cho PUT /configuration/{agentName} (lưu cấu hình agent)
     const putAgentConfigHandler = new lambda.Function(
       this,
       'PutAgentConfigHandler',

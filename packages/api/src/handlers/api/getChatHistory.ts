@@ -14,6 +14,8 @@ const MEMORY_ID = process.env.MEMORY_ID!;
 
 /**
  * Extract user ID (sub) from Cognito JWT token
+ *
+ * [VI] Trích xuất user ID (trường "sub") từ token JWT của Cognito
  */
 function extractActorId(event: APIGatewayProxyEvent): string {
   return event.requestContext.authorizer?.claims?.sub as string;
@@ -22,6 +24,9 @@ function extractActorId(event: APIGatewayProxyEvent): string {
 /**
  * Lambda handler for GET /chat/:sessionId
  * Retrieves chat history from AgentCore Memory
+ *
+ * [VI] Lambda handler cho GET /chat/:sessionId
+ * Lấy lịch sử trò chuyện từ AgentCore Memory
  */
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -39,6 +44,7 @@ export const handler = async (
 
     const actorId = extractActorId(event);
     // runtimeSessionId must match the format used in putChat
+    // [VI] runtimeSessionId phải trùng định dạng được dùng trong putChat
     const runtimeSessionId = `session-${sessionId}`;
 
     const command = new ListEventsCommand({
@@ -49,6 +55,7 @@ export const handler = async (
       maxResults: 100,
     });
 
+    // [VI] Ghi log yêu cầu ListEvents (lấy danh sách sự kiện)
     console.log('ListEvents request:', {
       memoryId: MEMORY_ID,
       actorId,
@@ -57,9 +64,11 @@ export const handler = async (
 
     const response = await client.send(command);
 
+    // [VI] Ghi log phản hồi ListEvents
     console.log('ListEvents response:', JSON.stringify(response, null, 2));
 
     // Transform events into chat messages
+    // [VI] Chuyển đổi các sự kiện thành các tin nhắn trò chuyện
     const rawMessages: {
       role: 'user' | 'assistant';
       content: string;
@@ -70,6 +79,7 @@ export const handler = async (
       if (event.payload) {
         for (const payload of event.payload) {
           // Handle conversational payload format
+          // [VI] Xử lý payload theo định dạng hội thoại (conversational)
           if ('conversational' in payload && payload.conversational) {
             const conv = payload.conversational as {
               role?: string;
@@ -95,6 +105,7 @@ export const handler = async (
                       } else if (block.toolUse) {
                         const rawName = block.toolUse.name || 'unknown';
                         // Strip gateway prefix (target___toolname)
+                        // [VI] Loại bỏ tiền tố của gateway (dạng target___toolname)
                         const delimIdx = rawName.indexOf('___');
                         const toolName =
                           delimIdx >= 0
@@ -111,6 +122,7 @@ export const handler = async (
                             ?.map((c: { text?: string }) => c.text || '')
                             .join('') || '';
                         // Find the matching tool_use name by toolUseId
+                        // [VI] Tìm tên tool_use tương ứng dựa theo toolUseId
                         const toolUseId = block.toolResult.toolUseId;
                         let toolName = 'tool';
                         if (toolUseId) {
@@ -147,6 +159,7 @@ export const handler = async (
                   }
                 }
               } catch (e) {
+                // [VI] Cảnh báo: không phân tích (parse) được payload của sự kiện
                 console.warn(
                   'Failed to parse event payload:',
                   e,
@@ -159,15 +172,21 @@ export const handler = async (
       }
     }
 
+    // [VI] Ghi log số lượng tin nhắn thô (raw)
     console.log('Raw messages count:', rawMessages.length);
 
     // Reverse to get chronological order (oldest first)
+    // [VI] Đảo ngược để có thứ tự thời gian (cũ nhất trước)
     rawMessages.reverse();
 
     // Consolidate into user-visible messages.
     // Tool result messages (role=user with only toolResult blocks) get
     // merged into the preceding assistant message so the UI shows one
     // coherent assistant bubble with text + tool_use + tool_result blocks.
+    // [VI] Hợp nhất thành các tin nhắn hiển thị cho người dùng.
+    // [VI] Các tin nhắn kết quả công cụ (role=user chỉ chứa các block toolResult) sẽ được
+    // [VI] gộp vào tin nhắn assistant ngay trước đó, để giao diện hiển thị một bong bóng
+    // [VI] assistant thống nhất gồm text + tool_use + tool_result.
     const messages: {
       role: 'user' | 'assistant';
       content: string;
@@ -178,6 +197,8 @@ export const handler = async (
 
       // Tool result messages (user role, no text, only tool_result blocks)
       // should merge into the preceding assistant message
+      // [VI] Tin nhắn kết quả công cụ (role=user, không có text, chỉ có block tool_result)
+      // [VI] sẽ được gộp vào tin nhắn assistant ngay trước đó
       const isToolResultOnly =
         msg.role === 'user' &&
         !msg.content &&
@@ -187,6 +208,7 @@ export const handler = async (
         lastMsg.blocks = [...(lastMsg.blocks || []), ...(msg.blocks || [])];
       } else if (lastMsg && lastMsg.role === msg.role) {
         // Merge consecutive same-role messages
+        // [VI] Gộp các tin nhắn liên tiếp có cùng vai trò (role)
         if (msg.content) {
           lastMsg.content += lastMsg.content
             ? '\n\n' + msg.content
@@ -200,6 +222,7 @@ export const handler = async (
       }
     }
 
+    // [VI] Ghi log số lượng tin nhắn sau khi đã hợp nhất
     console.log('Consolidated messages count:', messages.length);
 
     return {
@@ -208,6 +231,7 @@ export const handler = async (
       body: JSON.stringify({ messages }),
     };
   } catch (err) {
+    // [VI] Ghi log lỗi khi lấy lịch sử trò chuyện
     console.error('Error fetching chat history:', err);
     return {
       statusCode: 500,

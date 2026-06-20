@@ -12,7 +12,10 @@ from botocore.awsrequest import AWSRequest
 
 
 class SigV4HTTPXAuth(httpx.Auth):
-    """HTTPX Auth class that signs requests with AWS SigV4."""
+    """HTTPX Auth class that signs requests with AWS SigV4.
+
+    [VI] Lớp xác thực HTTPX dùng để ký các request bằng AWS SigV4.
+    """
 
     def __init__(
         self,

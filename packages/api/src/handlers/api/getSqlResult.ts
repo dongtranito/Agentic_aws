@@ -13,6 +13,9 @@ const SQL_RESULTS_BUCKET = process.env.SQL_RESULTS_BUCKET!;
 /**
  * Lambda handler for GET /sql-result/{key+}
  * Returns a presigned URL to download the full SQL result from S3.
+ *
+ * [VI] Lambda handler cho GET /sql-result/{key+}
+ * Trả về một URL có chữ ký sẵn (presigned URL) để tải toàn bộ kết quả SQL từ S3.
  */
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -41,6 +44,7 @@ export const handler = async (
       body: JSON.stringify({ url: presignedUrl }),
     };
   } catch (err) {
+    // [VI] Ghi log lỗi khi tạo presigned URL
     console.error('Error generating presigned URL:', err);
     return {
       statusCode: 500,

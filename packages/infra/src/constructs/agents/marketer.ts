@@ -71,6 +71,7 @@ export class MarketerAgentConstruct extends Construct {
     sessionsBucket.grantReadWrite(this.executionRole);
 
     // Grant invoke + GetAgentCard for all worker agent runtimes
+    // [VI] Cấp quyền invoke + GetAgentCard cho tất cả runtime của các worker agent
     for (const runtime of [
       databricksRuntime,
       clevertapRuntime,

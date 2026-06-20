@@ -12,7 +12,10 @@ REGION = os.environ.get("AWS_REGION", "us-east-1")
 
 
 def get_talonone_agent() -> Agent:
-    """Create a TalonOne agent with gateway tools for A2A serving."""
+    """Create a TalonOne agent with gateway tools for A2A serving.
+
+    [VI] Tạo một agent TalonOne với các công cụ gateway để phục vụ qua A2A.
+    """
     mcp_client = get_gateway_mcp_client("talonone-target")
     config = load_configuration()
 

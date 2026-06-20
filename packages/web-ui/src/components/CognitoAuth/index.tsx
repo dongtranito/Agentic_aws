@@ -12,6 +12,11 @@ import { useRuntimeConfig } from '../../hooks/useRuntimeConfig';
  *
  * This assumes a runtime-config.json file is present at '/'. In order for Auth to be set up automatically,
  * the runtime-config.json must have the cognitoProps set.
+ *
+ * [VI] Thiết lập xác thực (auth) Cognito.
+ *
+ * Giả định rằng có một file runtime-config.json nằm tại '/'. Để Auth được thiết lập tự động,
+ * file runtime-config.json phải có thiết lập cognitoProps.
  */
 const CognitoAuth: React.FC<PropsWithChildren> = ({ children }) => {
   const { cognitoProps } = useRuntimeConfig();
@@ -19,6 +24,7 @@ const CognitoAuth: React.FC<PropsWithChildren> = ({ children }) => {
   if (!cognitoProps) {
     if (import.meta.env.MODE === 'serve-local') {
       // In serve-local mode with no cognitoProps available, we skip login
+      // [VI] Ở chế độ serve-local khi không có cognitoProps, ta bỏ qua bước đăng nhập
       return <AuthProvider>{children}</AuthProvider>;
     }
     return (

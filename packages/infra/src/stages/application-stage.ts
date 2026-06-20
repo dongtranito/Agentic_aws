@@ -12,6 +12,8 @@ export interface ApplicationStageProps extends StageProps {
 
 /**
  * Defines a collection of CDK Stacks which make up your application
+ *
+ * [VI] Định nghĩa một tập hợp các CDK Stack tạo nên ứng dụng của bạn
  */
 export class ApplicationStage extends Stage {
   constructor(scope: Construct, id: string, props: ApplicationStageProps) {

@@ -20,9 +20,11 @@ interface SeedData {
 }
 
 export const handler = async (event: CloudFormationCustomResourceEvent) => {
+  // [VI] Ghi log nội dung sự kiện nhận được
   console.log('Event:', JSON.stringify(event));
 
   // Only seed on initial stack creation. Updates and deletes are no-ops.
+  // [VI] Chỉ nạp dữ liệu khởi tạo (seed) khi stack được tạo lần đầu. Cập nhật và xóa không làm gì cả.
   if (event.RequestType !== 'Create') {
     return { PhysicalResourceId: 'seed-config' };
   }
@@ -46,6 +48,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent) => {
         Overwrite: true,
       }),
     );
+    // [VI] Ghi log: đã nạp xong tham số (seed)
     console.log(`Seeded parameter ${paramName}`);
   }
 

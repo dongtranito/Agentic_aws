@@ -82,6 +82,7 @@ export class StorageAndData extends Construct {
       cors: [
         {
           // TODO: restrict this later
+          // [VI] TODO: hạn chế (siết) lại cấu hình CORS này về sau
           allowedMethods: [s3.HttpMethods.GET],
           allowedOrigins: ['*'],
           allowedHeaders: ['*'],

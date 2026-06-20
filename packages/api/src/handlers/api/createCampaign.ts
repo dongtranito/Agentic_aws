@@ -10,6 +10,8 @@ const CAMPAIGNS_TABLE_NAME = process.env.CAMPAIGNS_TABLE_NAME!;
 
 /**
  * Lambda handler for POST /campaign
+ *
+ * [VI] Lambda handler cho POST /campaign (tạo chiến dịch mới)
  */
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -51,6 +53,7 @@ export const handler = async (
       body: JSON.stringify(campaign),
     };
   } catch (err) {
+    // [VI] Ghi log lỗi khi tạo chiến dịch
     console.error('Error creating campaign:', err);
     return {
       statusCode: 500,

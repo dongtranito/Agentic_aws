@@ -9,7 +9,10 @@ from ..utils.a2a import stream_a2a_agent
 
 
 def build_databricks_tool(agent_runtime_arn: str, region: str, session_id: str):
-    """Create a tool that delegates Databricks tasks to the remote agent."""
+    """Create a tool that delegates Databricks tasks to the remote agent.
+
+    [VI] Tạo một công cụ (tool) ủy thác các tác vụ Databricks cho agent từ xa.
+    """
 
     @tool
     async def databricks_agent(request: str) -> AsyncIterator:
@@ -23,6 +26,17 @@ def build_databricks_tool(agent_runtime_arn: str, region: str, session_id: str):
 
         Args:
             request: A natural language description of the data task.
+
+        [VI] Gửi một yêu cầu phân tích dữ liệu tới agent Databricks.
+
+        Dùng công cụ này cho mọi tác vụ liên quan tới Databricks, bao gồm:
+        - Thực thi truy vấn SQL trên các warehouse của Databricks
+        - Khám phá schema, bảng và cột trong Unity Catalog
+        - Chạy và giám sát các job của Databricks
+        - Phân khúc đối tượng (audience segmentation) và phân tích dữ liệu
+
+        Tham số:
+            request: Mô tả tác vụ dữ liệu bằng ngôn ngữ tự nhiên.
         """
         async for event in stream_a2a_agent(
             agent_runtime_arn,

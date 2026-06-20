@@ -7,6 +7,7 @@ from common.a2a_server import create_a2a_app
 
 from .agent import get_databricks_agent
 
+# [VI] Thiết lập mức log mặc định là INFO
 logging.basicConfig(level=logging.INFO)
 
 app = create_a2a_app(get_databricks_agent, agent_id="databricks-agent")

@@ -4,12 +4,16 @@
 /**
  * TalonOne MCP Server Lambda Handler
  * Calls TalonOne Management API and Integration API. Credentials from Secrets Manager.
+ *
+ * [VI] Lambda Handler cho MCP Server của TalonOne.
+ * Gọi tới TalonOne Management API và Integration API. Thông tin xác thực lấy từ Secrets Manager.
  */
 
 import { GatewayContext, extractToolName, getSecret } from './utils/index.js';
 
 // ---------------------------------------------------------------------------
 // TalonOne credentials & API clients
+// [VI] Thông tin xác thực TalonOne & các client gọi API
 // ---------------------------------------------------------------------------
 
 const TALONONE_SECRET_ARN = process.env.TALONONE_SECRET_ARN ?? '';
@@ -37,6 +41,7 @@ async function managementApi(
     },
   };
   if (body && method !== 'GET') init.body = JSON.stringify(body);
+  // [VI] Ghi log lệnh gọi tới TalonOne Management API (phương thức và URL)
   console.log('TalonOne Management API:', { method, url });
   const resp = await fetch(url, init);
   if (!resp.ok) {
@@ -62,6 +67,7 @@ async function integrationApi(
     },
   };
   if (body && method !== 'GET') init.body = JSON.stringify(body);
+  // [VI] Ghi log lệnh gọi tới TalonOne Integration API (phương thức và URL)
   console.log('TalonOne Integration API:', { method, url });
   const resp = await fetch(url, init);
   if (!resp.ok) {
@@ -78,6 +84,7 @@ async function getAppId(): Promise<number> {
 
 // ---------------------------------------------------------------------------
 // Tool implementations
+// [VI] Phần hiện thực các công cụ
 // ---------------------------------------------------------------------------
 
 async function listCampaigns(args: Record<string, unknown>): Promise<unknown> {
@@ -223,6 +230,7 @@ async function createCoupon(args: Record<string, unknown>): Promise<unknown> {
 
 // ---------------------------------------------------------------------------
 // Router
+// [VI] Bộ định tuyến (router) — chọn công cụ phù hợp để xử lý yêu cầu
 // ---------------------------------------------------------------------------
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
@@ -250,6 +258,7 @@ export const handler = async (
       context.clientContext?.custom?.bedrockAgentCoreToolName || '';
     const toolName = extractToolName(fullToolName);
 
+    // [VI] Ghi log yêu cầu MCP của TalonOne
     console.log('TalonOne MCP request:', { fullToolName, toolName, event });
 
     const toolHandler = toolRegistry[toolName];
@@ -259,6 +268,7 @@ export const handler = async (
 
     return await toolHandler(event);
   } catch (err) {
+    // [VI] Ghi log lỗi MCP của TalonOne
     console.error('TalonOne MCP error:', err);
     return {
       error: err instanceof Error ? err.message : 'Internal server error',

@@ -22,6 +22,14 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
       - data: {"type":"tool_use","name":"...","input":{...}} when a tool starts
       - data: {"type":"tool_result","name":"...","output":"..."} when a tool completes
       - data: {"type":"subagent_progress","agent":"...","content":"..."} for subagent streaming
+
+    [VI] Trình xử lý dạng streaming cho việc gọi agent.
+
+    Phát ra các sự kiện theo định dạng SSE:
+      - data: {"type":"text","content":"..."} cho các đoạn văn bản
+      - data: {"type":"tool_use","name":"...","input":{...}} khi một công cụ bắt đầu chạy
+      - data: {"type":"tool_result","name":"...","output":"..."} khi một công cụ hoàn tất
+      - data: {"type":"subagent_progress","agent":"...","content":"..."} cho luồng streaming của subagent
     """
     current_session_id.set(session_id)
     with get_agent(session_id=session_id, actor_id=actor_id) as agent:
@@ -30,7 +38,10 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
         stream = agent.stream_async(prompt)
 
         def flush_pending_tool():
-            """Emit the pending tool_use event with accumulated input."""
+            """Emit the pending tool_use event with accumulated input.
+
+            [VI] Phát ra sự kiện tool_use đang chờ kèm theo dữ liệu đầu vào đã gom lại.
+            """
             nonlocal pending_tool
             if pending_tool is None:
                 return None
@@ -39,9 +50,10 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
             return f"data: {evt}\n\n"
 
         async for event in stream:
-            print(event)
+            print(event)  # [VI] In ra sự kiện thô để gỡ lỗi (debug)
 
             # Tool use start/update — accumulate input, don't emit yet
+            # [VI] Bắt đầu/cập nhật việc dùng công cụ — gom dữ liệu đầu vào, chưa phát ra vội
             tool_use = event.get("current_tool_use")
             if tool_use and tool_use.get("name"):
                 raw_name = tool_use["name"]
@@ -49,11 +61,13 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
 
                 if pending_tool and pending_tool["name"] != tool_name:
                     # Different tool — flush the previous one
+                    # [VI] Công cụ khác — đẩy (flush) công cụ trước đó ra
                     flushed = flush_pending_tool()
                     if flushed:
                         yield flushed
 
                 # Update pending tool with latest accumulated input
+                # [VI] Cập nhật công cụ đang chờ với dữ liệu đầu vào mới nhất đã gom lại
                 raw_input = tool_use.get("input", {})
                 if isinstance(raw_input, str):
                     try:
@@ -69,11 +83,13 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
                 continue
 
             # Any non-tool event: flush pending tool first
+            # [VI] Mọi sự kiện không phải công cụ: đẩy công cụ đang chờ ra trước
             flushed = flush_pending_tool()
             if flushed:
                 yield flushed
 
             # Subagent streaming progress via tool_stream_event
+            # [VI] Tiến độ streaming của subagent thông qua tool_stream_event
             tool_stream = event.get("tool_stream_event")
             if tool_stream:
                 data = tool_stream.get("data")
@@ -89,12 +105,14 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
                     continue
 
             # Complete message — check for tool results
+            # [VI] Tin nhắn hoàn chỉnh — kiểm tra xem có kết quả từ công cụ không
             msg = event.get("message")
             if msg and msg.get("role") == "user":
                 for block in msg.get("content", []):
                     if "toolResult" in block:
                         tr = block["toolResult"]
                         # Resolve tool name from tracked names or message
+                        # [VI] Xác định tên công cụ từ danh sách đã theo dõi hoặc từ tin nhắn
                         tool_use_id = tr.get("toolUseId", "")
                         tool_name = last_tool_names.get(tool_use_id, "")
                         if not tool_name:
@@ -126,6 +144,7 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
                 continue
 
             # Text content
+            # [VI] Nội dung văn bản
             content = event.get("data")
             if content is not None:
                 evt = json.dumps({"type": "text", "content": content})
@@ -133,6 +152,7 @@ async def handle_invoke(prompt: str, session_id: str, actor_id: str):
                 continue
 
             # Message stop
+            # [VI] Tín hiệu kết thúc tin nhắn
             if event.get("event", {}).get("messageStop") is not None:
                 pass
 
@@ -146,11 +166,14 @@ async def invoke(
 ) -> str:
     """Entry point for agent invocation"""
     # AgentCore sends payload as application/octet-stream, so we parse manually
+    # [VI] Điểm vào (entry point) cho việc gọi agent.
+    # [VI] AgentCore gửi payload dưới dạng application/octet-stream nên ta phải tự phân tích thủ công.
     body = await request.body()
     data = json.loads(body)
     prompt = data.get("prompt", "")
     actor_id = data.get("actorId", "anonymous")
 
+    # [VI] In ra prompt đã nhận cùng session_id và actor_id để theo dõi/gỡ lỗi
     print(f"Received prompt: {prompt}, session_id: {x_amzn_bedrock_agentcore_runtime_session_id}, actor_id: {actor_id}")
 
     return StreamingResponse(
@@ -162,6 +185,7 @@ async def invoke(
 @app.get("/ping")
 def ping() -> str:
     # TODO: if running an async task, return PingStatus.HEALTHY_BUSY
+    # [VI] TODO: nếu đang chạy một tác vụ bất đồng bộ, hãy trả về PingStatus.HEALTHY_BUSY
     return PingStatus.HEALTHY
 
 

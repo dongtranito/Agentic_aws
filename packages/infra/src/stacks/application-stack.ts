@@ -25,6 +25,7 @@ export class ApplicationStack extends Stack {
     const { deploymentConfig } = props;
 
     // The code that defines your stack goes here
+    // [VI] Đoạn code định nghĩa stack của bạn nằm ở đây
 
     const identity = new UserIdentity(this, 'UserIdentity', {
       adminUser: deploymentConfig.adminUser,

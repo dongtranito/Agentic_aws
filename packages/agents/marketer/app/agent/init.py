@@ -18,14 +18,17 @@ class InternalServerErrorDetails(BaseModel):
 app = FastAPI(title="MarketerAgent", responses={500: {"model": InternalServerErrorDetails}})
 
 # Add cors middleware
+# [VI] Thêm middleware CORS (cho phép gọi từ các nguồn khác nhau)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 # Add exception middleware(s)
+# [VI] Thêm (các) middleware xử lý ngoại lệ
 app.add_middleware(ExceptionMiddleware, handlers=app.exception_handlers)
 
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # [VI] Bắt đầu khối thông tin lỗi xác thực (validation error) để gỡ lỗi
     print("=== VALIDATION ERROR ===")
     print(f"URL: {request.url}")
     print(f"Method: {request.method}")
@@ -33,6 +36,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     body = await request.body()
     print(f"Body: {body}")
     print(f"Errors: {exc.errors()}")
+    # [VI] Kết thúc khối thông tin lỗi xác thực
     print("=== END VALIDATION ERROR ===")
     return JSONResponse(
         status_code=422,
@@ -42,6 +46,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request, err):
+    # [VI] In ra request và lỗi chưa được xử lý để phục vụ gỡ lỗi
     print(request)
     print(err)
     return JSONResponse(

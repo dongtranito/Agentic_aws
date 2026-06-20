@@ -20,10 +20,16 @@ logger = logging.getLogger(__name__)
 class SessionIdMiddleware(BaseHTTPMiddleware):
     """Middleware that extracts the AgentCore Runtime session ID from the
     request header and sets it in a context variable so the S3 artifact
-    hook can read it."""
+    hook can read it.
+
+    [VI] Middleware trích xuất session ID của AgentCore Runtime từ header
+    của request và đặt nó vào một biến ngữ cảnh để hook artifact S3 có thể
+    đọc được.
+    """
 
     async def dispatch(self, request: Request, call_next):
         session_id = request.headers.get("x-amzn-bedrock-agentcore-runtime-session-id", "unknown")
+        # [VI] Ghi log session_id và đường dẫn đi qua middleware
         logger.info(f"SessionIdMiddleware: session_id={session_id}, path={request.url.path}")
         token = current_session_id.set(session_id)
         try:
@@ -44,13 +50,23 @@ def create_a2a_app(
         agent_id: Identifier for this agent (used for S3 artifact path).
             If provided along with artifact_bucket, enables S3 artifact persistence.
         artifact_bucket: S3 bucket name for storing conversation artifacts.
+
+    [VI] Tạo một ứng dụng FastAPI phục vụ một Strands agent qua giao thức A2A.
+
+    Tham số:
+        agent_factory: Một callable trả về một Strands Agent đã được cấu hình.
+        agent_id: Định danh của agent này (dùng cho đường dẫn artifact trên S3).
+            Nếu được cung cấp cùng artifact_bucket, sẽ bật tính năng lưu artifact lên S3.
+        artifact_bucket: Tên bucket S3 để lưu các artifact hội thoại.
     """
     runtime_url = os.environ.get("AGENTCORE_RUNTIME_URL", "http://127.0.0.1:9000/")
+    # [VI] Ghi log URL của runtime
     logger.info(f"Runtime URL: {runtime_url}")
 
     strands_agent = agent_factory()
 
     # Register S3 artifact hook if configured
+    # [VI] Đăng ký hook artifact S3 nếu đã được cấu hình
     if agent_id and (artifact_bucket or os.environ.get("ARTIFACT_BUCKET")):
         hook = S3ArtifactHook(agent_id=agent_id, artifact_bucket=artifact_bucket)
         hook.register(strands_agent.hooks)
@@ -77,6 +93,9 @@ def run_a2a_server(
     agent_id: str | None = None,
     artifact_bucket: str | None = None,
 ) -> None:
-    """Create and run an A2A server (blocking)."""
+    """Create and run an A2A server (blocking).
+
+    [VI] Tạo và chạy một A2A server (chạy chặn — blocking).
+    """
     app = create_a2a_app(agent_factory, agent_id=agent_id, artifact_bucket=artifact_bucket)
     uvicorn.run(app, host="0.0.0.0", port=9000)

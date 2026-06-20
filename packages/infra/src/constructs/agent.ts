@@ -26,12 +26,14 @@ export class AgentConstruct extends Construct {
     const { gateway, sessionsBucket, parameterPrefix } = props;
 
     // Shared memory
+    // [VI] Bộ nhớ dùng chung
     this.memory = new agentcore.Memory(this, 'MarketerMemory', {
       memoryName: 'marketer_memory',
       description: 'Short-term memory for the marketer agent',
     });
 
     // Deploy individual agents
+    // [VI] Triển khai từng agent riêng lẻ
     const databricks = new DatabricksAgentConstruct(this, 'Databricks', {
       gateway,
       parameterPrefix,

@@ -13,6 +13,7 @@ export const CampaignOutput = z.object({
 export type ICampaignOutput = z.TypeOf<typeof CampaignOutput>;
 
 // Get config
+// [VI] Lấy cấu hình
 
 export const GetCampaignInputSchema = z.object({
   id: z.string(),
@@ -28,6 +29,7 @@ export const GetCampaignOutputSchema = CampaignOutput.extend({
 export type IGetCampaignOutput = z.TypeOf<typeof GetCampaignOutputSchema>;
 
 // Get campaigns (list)
+// [VI] Lấy danh sách chiến dịch
 
 export const GetCampaignsInputSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(100).optional().default(10),
@@ -51,6 +53,7 @@ export const GetCampaignsOutputSchema = z.object({
 export type IGetCampaignsOutput = z.TypeOf<typeof GetCampaignsOutputSchema>;
 
 // Create campaign
+// [VI] Tạo chiến dịch
 
 export const CreateCampaignInputSchema = z.object({
   name: z.string(),

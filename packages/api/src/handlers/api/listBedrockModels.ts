@@ -20,6 +20,15 @@ const bedrock = new BedrockClient({});
  *
  * This ensures both on-demand models and cross-region profiles (apac.*, us.*, eu.*)
  * appear in the configuration dropdown.
+ *
+ * [VI] Lambda handler cho GET /configuration/models
+ *
+ * Liệt kê các mô hình khả dụng bằng cách kết hợp:
+ * 1. Các foundation model hỗ trợ ON_DEMAND (gọi trực tiếp theo region)
+ * 2. Tất cả inference profile đang hoạt động (theo region và liên vùng - cross-region)
+ *
+ * Điều này đảm bảo cả mô hình on-demand lẫn profile liên vùng (apac.*, us.*, eu.*)
+ * đều xuất hiện trong danh sách thả xuống (dropdown) của phần cấu hình.
  */
 export const handler = async (): Promise<APIGatewayProxyResult> => {
   try {
@@ -36,6 +45,7 @@ export const handler = async (): Promise<APIGatewayProxyResult> => {
     }[] = [];
 
     // 1. Foundation models available on-demand in this region
+    // [VI] 1. Các foundation model khả dụng theo dạng on-demand trong region này
     for (const m of fmResponse.modelSummaries ?? []) {
       if (m.modelLifecycle?.status !== 'ACTIVE') continue;
       const inferenceTypes = m.inferenceTypesSupported ?? [];
@@ -53,12 +63,14 @@ export const handler = async (): Promise<APIGatewayProxyResult> => {
     }
 
     // 2. All active inference profiles (regional + cross-region)
+    // [VI] 2. Tất cả inference profile đang hoạt động (theo region + liên vùng)
     for (const p of profilesResponse.inferenceProfileSummaries ?? []) {
       const profileId = p.inferenceProfileId;
       if (!profileId || p.status !== 'ACTIVE' || seen.has(profileId)) continue;
       seen.add(profileId);
 
       // Derive provider from profile ID (e.g. "apac.anthropic.claude-..." → "anthropic")
+      // [VI] Suy ra nhà cung cấp từ profile ID (vd: "apac.anthropic.claude-..." → "anthropic")
       const parts = profileId.split('.');
       const providerName = parts.length > 1 ? parts[1] : parts[0];
 
@@ -75,6 +87,7 @@ export const handler = async (): Promise<APIGatewayProxyResult> => {
       body: JSON.stringify({ models }),
     };
   } catch (err) {
+    // [VI] Ghi log lỗi khi liệt kê các mô hình
     console.error('Error listing models:', err);
     return {
       statusCode: 500,

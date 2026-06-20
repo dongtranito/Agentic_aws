@@ -56,6 +56,7 @@ export const Chat = ({ campaignId }: ChatProps) => {
         const history = await api.chat.getHistory(campaignId);
         setMessages(history.messages || []);
       } catch (error) {
+        // [VI] Ghi log lỗi khi tải lịch sử trò chuyện
         console.error('Failed to load chat history:', error);
       } finally {
         setIsLoadingHistory(false);
@@ -92,6 +93,7 @@ export const Chat = ({ campaignId }: ChatProps) => {
   const appendSubagentProgress = (agent: string, content: string) => {
     const blocks = blocksRef.current;
     // Find the last tool_use block to attach progress to
+    // [VI] Tìm block tool_use cuối cùng để gắn thông tin tiến độ vào
     for (let i = blocks.length - 1; i >= 0; i--) {
       if (blocks[i].type === 'tool_use') {
         const toolBlock = blocks[i] as ContentBlock & { type: 'tool_use' };
@@ -146,6 +148,7 @@ export const Chat = ({ campaignId }: ChatProps) => {
               }
             } catch {
               // Not valid JSON — ignore
+              // [VI] Không phải JSON hợp lệ — bỏ qua
             }
           }
         },
@@ -154,6 +157,7 @@ export const Chat = ({ campaignId }: ChatProps) => {
       const finalBlocks = blocksRef.current.map((b) => {
         if (b.type === 'tool_use') {
           // Strip progress from finalized blocks — it's ephemeral
+          // [VI] Loại bỏ thông tin tiến độ khỏi các block đã hoàn tất — vì nó chỉ là tạm thời
           const { progress: _, ...rest } = b;
           return rest;
         }

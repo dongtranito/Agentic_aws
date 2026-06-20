@@ -12,7 +12,10 @@ REGION = os.environ.get("AWS_REGION", "us-east-1")
 
 
 def get_databricks_agent() -> Agent:
-    """Create a Databricks agent with gateway tools for A2A serving."""
+    """Create a Databricks agent with gateway tools for A2A serving.
+
+    [VI] Tạo một agent Databricks với các công cụ gateway để phục vụ qua A2A.
+    """
     mcp_client = get_gateway_mcp_client("databricks-target")
     config = load_configuration()
 

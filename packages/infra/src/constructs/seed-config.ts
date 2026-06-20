@@ -8,6 +8,14 @@
  *
  * The seed data is written to a JSON file at synth time and bundled into the
  * Lambda deployment package — avoiding CloudFormation property size limits.
+ *
+ * [VI] CDK construct dùng để nạp (seed) cấu hình agent mặc định vào SSM Parameter Store.
+ * Sử dụng một CloudFormation Custom Resource chỉ tạo các tham số khi stack được
+ * tạo lần đầu (cập nhật và xóa thì không làm gì cả).
+ *
+ * Dữ liệu seed được ghi ra một file JSON tại thời điểm synth và đóng gói vào
+ * gói triển khai (deployment package) của Lambda — nhằm tránh giới hạn kích thước
+ * thuộc tính của CloudFormation.
  */
 import { CustomResource, Duration, Stack } from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -35,6 +43,7 @@ export class SeedConfig extends Construct {
     const { parameterPrefix, agents } = props;
 
     // Write seed data to a JSON file that gets bundled with the handler.
+    // [VI] Ghi dữ liệu seed ra một file JSON để được đóng gói cùng với handler.
     const handlersDir = path.join(__dirname, '..', 'handlers');
     const seedDataPath = path.join(handlersDir, 'seed-data.json');
     fs.writeFileSync(

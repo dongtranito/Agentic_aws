@@ -13,6 +13,7 @@ import {
 } from '@smithy/types';
 
 // Credential expiration grace time before considering credentials as expired
+// [VI] Khoảng thời gian "ân hạn" trước khi coi thông tin xác thực là đã hết hạn
 const CREDENTIAL_EXPIRY_OFFSET_MILLIS = 30 * 1000;
 
 export const useSigV4 = () => {
@@ -50,6 +51,7 @@ export const useSigV4 = () => {
     async (input: RequestInfo | URL, init?: RequestInit | undefined) => {
       if (!cognitoProps && import.meta.env.MODE === 'serve-local') {
         // Skip request signing in serve-local mode when cognitoProps are not set
+        // [VI] Bỏ qua việc ký request ở chế độ serve-local khi chưa thiết lập cognitoProps
         return fetch(input, init);
       }
       if (!cognitoProps) {

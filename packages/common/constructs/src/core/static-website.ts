@@ -32,6 +32,12 @@ export interface StaticWebsiteProps {
  * provides protection against exploitation of a wide range of vulnerabilities, including some of the high risk
  * and commonly occurring vulnerabilities described in OWASP publications such as OWASP Top 10.
  *
+ * [VI] Triển khai một website tĩnh, mặc định dùng một S3 bucket riêng tư làm origin và Cloudfront làm điểm vào (entrypoint).
+ *
+ * Construct này cấu hình một webAcl chứa các quy tắc thường áp dụng cho ứng dụng web, giúp
+ * bảo vệ trước việc khai thác nhiều loại lỗ hổng, bao gồm một số lỗ hổng rủi ro cao và
+ * thường gặp được mô tả trong các tài liệu của OWASP, chẳng hạn OWASP Top 10.
+ *
  */
 export class StaticWebsite extends Construct {
   public readonly websiteBucket: IBucket;
@@ -76,6 +82,7 @@ export class StaticWebsite extends Construct {
     );
 
     // S3 Bucket to hold website files
+    // [VI] S3 Bucket để chứa các file của website
     this.websiteBucket = new Bucket(this, 'WebsiteBucket', {
       versioned: true,
       enforceSSL: true,
@@ -90,9 +97,11 @@ export class StaticWebsite extends Construct {
       serverAccessLogsBucket: accessLogsBucket,
     });
     // Web ACL
+    // [VI] Web ACL (danh sách kiểm soát truy cập web - tường lửa ứng dụng web)
     const wafStack = new CloudfrontWebAcl(this, 'waf');
 
     // Cloudfront Distribution
+    // [VI] Cloudfront Distribution (phân phối nội dung qua CDN)
     const logBucket = new Bucket(this, 'DistributionLogBucket', {
       enforceSSL: true,
       autoDeleteObjects: true,
@@ -127,11 +136,13 @@ export class StaticWebsite extends Construct {
         errorResponses: [
           {
             httpStatus: 404, // We need to redirect "key not found errors" to index.html for single page apps
+            // [VI] httpStatus 404: cần chuyển hướng lỗi "không tìm thấy key" về index.html cho ứng dụng SPA (single page app)
             responseHttpStatus: 200,
             responsePagePath: `/${defaultRootObject}`,
           },
           {
             httpStatus: 403, // We need to redirect reloads from paths (e.g. /foo/bar) to index.html for single page apps
+            // [VI] httpStatus 403: cần chuyển hướng việc tải lại từ các đường dẫn (vd: /foo/bar) về index.html cho ứng dụng SPA
             responseHttpStatus: 200,
             responsePagePath: `/${defaultRootObject}`,
           },
@@ -145,6 +156,7 @@ export class StaticWebsite extends Construct {
     );
 
     // Deploy Website
+    // [VI] Triển khai Website
     this.bucketDeployment = new BucketDeployment(this, 'WebsiteDeployment', {
       sources: [
         Source.asset(websiteFilePath),
@@ -155,6 +167,7 @@ export class StaticWebsite extends Construct {
       ],
       destinationBucket: this.websiteBucket,
       // Files in the distribution's edge caches will be invalidated after files are uploaded to the destination bucket.
+      // [VI] Các file trong bộ nhớ đệm (edge cache) của distribution sẽ bị vô hiệu hóa (invalidate) sau khi file được tải lên bucket đích.
       distribution: this.cloudFrontDistribution,
       memoryLimit: 1024,
     });

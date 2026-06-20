@@ -10,6 +10,8 @@ const CAMPAIGNS_TABLE_NAME = process.env.CAMPAIGNS_TABLE_NAME!;
 
 /**
  * Lambda handler for GET /campaign/:id
+ *
+ * [VI] Lambda handler cho GET /campaign/:id (lấy một chiến dịch theo ID)
  */
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -46,6 +48,7 @@ export const handler = async (
       body: JSON.stringify(response.Item),
     };
   } catch (err) {
+    // [VI] Ghi log lỗi khi lấy chiến dịch
     console.error('Error getting campaign:', err);
     return {
       statusCode: 500,

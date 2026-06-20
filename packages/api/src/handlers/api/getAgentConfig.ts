@@ -14,6 +14,9 @@ const PARAMETER_PREFIX = process.env.PARAMETER_PREFIX!;
 /**
  * Lambda handler for GET /configuration/{agentName}
  * Retrieves the configuration for a specific agent from Parameter Store.
+ *
+ * [VI] Lambda handler cho GET /configuration/{agentName}
+ * Lấy cấu hình của một agent cụ thể từ Parameter Store.
  */
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -62,6 +65,7 @@ export const handler = async (
       throw err;
     }
   } catch (err) {
+    // [VI] Ghi log lỗi khi lấy cấu hình agent
     console.error('Error getting agent config:', err);
     return {
       statusCode: 500,

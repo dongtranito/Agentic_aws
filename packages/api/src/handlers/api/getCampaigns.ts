@@ -14,6 +14,9 @@ const CAMPAIGN_ACTIVE_INDEX = process.env.CAMPAIGN_ACTIVE_INDEX!;
 /**
  * Lambda handler for GET /campaign
  * Supports pagination via pageSize and nextToken query parameters
+ *
+ * [VI] Lambda handler cho GET /campaign (lấy danh sách chiến dịch)
+ * Hỗ trợ phân trang qua các tham số truy vấn pageSize và nextToken
  */
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -33,6 +36,7 @@ export const handler = async (
     const { pageSize, nextToken } = parsed.data;
 
     // Decode nextToken if provided
+    // [VI] Giải mã nextToken nếu được cung cấp
     let exclusiveStartKey: Record<string, unknown> | undefined;
     if (nextToken) {
       try {
@@ -63,6 +67,7 @@ export const handler = async (
     );
 
     // Encode LastEvaluatedKey as nextToken
+    // [VI] Mã hóa LastEvaluatedKey thành nextToken (token trang kế tiếp)
     let responseNextToken: string | undefined;
     if (response.LastEvaluatedKey) {
       responseNextToken = Buffer.from(
@@ -79,6 +84,7 @@ export const handler = async (
       }),
     };
   } catch (err) {
+    // [VI] Ghi log lỗi khi lấy danh sách chiến dịch
     console.error('Error getting campaigns:', err);
     return {
       statusCode: 500,

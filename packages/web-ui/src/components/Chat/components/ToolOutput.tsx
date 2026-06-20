@@ -68,6 +68,7 @@ export const ToolOutput = ({ output }: { output: string }) => {
         setModalVisible(true);
       }
     } catch (err) {
+      // [VI] Ghi log lỗi khi tải kết quả đầy đủ
       console.error('Failed to load full result:', err);
     } finally {
       setLoadingFull(false);

@@ -4,6 +4,7 @@
 import { z } from 'zod';
 
 // Chat
+// [VI] Trò chuyện (Chat)
 
 export const PutChatRequestSchema = z.object({
   sessionId: z.string(),
@@ -19,6 +20,7 @@ export const PutChatResponseSchema = z.object({
 export type IPutChatOutput = z.TypeOf<typeof PutChatResponseSchema>;
 
 // Chat History
+// [VI] Lịch sử trò chuyện
 
 export const ContentBlockSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('text'), content: z.string() }),
@@ -54,6 +56,7 @@ export type IGetChatHistoryOutput = z.TypeOf<
 >;
 
 // SQL Result
+// [VI] Kết quả SQL
 
 export const GetSqlResultResponseSchema = z.object({
   url: z.string(),

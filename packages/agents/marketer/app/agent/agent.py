@@ -22,7 +22,10 @@ TALONONE_A2A_ENDPOINT = os.environ["TALONONE_A2A_ENDPOINT"]
 
 @contextmanager
 def get_agent(session_id: str, actor_id: str):
-    """Get an agent with AgentCore memory and A2A worker agents."""
+    """Get an agent with AgentCore memory and A2A worker agents.
+
+    [VI] Khởi tạo một agent có bộ nhớ AgentCore và các worker agent A2A.
+    """
     agentcore_memory_config = AgentCoreMemoryConfig(
         memory_id=MEMORY_ID,
         session_id=session_id,

@@ -30,6 +30,8 @@ export interface IdentityProps {
 const WEB_CLIENT_ID = 'WebClient';
 /**
  * Creates a UserPool and Identity Pool with sane defaults configured intended for usage from a web client.
+ *
+ * [VI] Tạo một UserPool và Identity Pool với các giá trị mặc định hợp lý, dùng cho client web.
  */
 export class UserIdentity extends Construct {
   public readonly region: string;

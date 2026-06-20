@@ -65,6 +65,7 @@ export class ClevertapTarget extends Construct {
     const T = agentcore.SchemaDefinitionType;
 
     // Shared sub-schemas
+    // [VI] Các sub-schema dùng chung
     const userPropertyFilterSchema = {
       type: T.OBJECT,
       description: 'A user property filter: { name, operator, value }',
@@ -103,6 +104,7 @@ export class ClevertapTarget extends Construct {
     };
 
     // Shared campaign properties used by create, confirm, and update tools
+    // [VI] Các thuộc tính chiến dịch dùng chung cho các công cụ tạo, xác nhận và cập nhật
     const campaignProperties = {
       name: { type: T.STRING, description: 'Campaign name' },
       target_mode: {
