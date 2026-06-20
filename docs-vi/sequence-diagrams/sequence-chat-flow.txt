@@ -1,0 +1,11 @@
+title: Luồng Chat
+
+Web UI -> API Gateway: PUT /chat (prompt, sessionId)
+API Gateway -> Marketing Agent: Gọi qua AgentCore Runtime
+Marketing Agent -> Worker Agent: Ủy thác tác vụ (A2A)
+Worker Agent -> MCP Gateway: Gọi các tool
+MCP Gateway -> External API: Request API
+External API --> MCP Gateway: Phản hồi
+MCP Gateway --> Worker Agent: Kết quả tool
+Worker Agent --> Marketing Agent: Kết quả
+Marketing Agent --> Web UI: Stream các sự kiện SSE

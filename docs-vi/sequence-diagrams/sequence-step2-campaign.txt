@@ -1,0 +1,11 @@
+title: Bước 2 — Tạo chiến dịch
+
+Web UI -> API Handler: Người dùng xác nhận đối tượng
+API Handler -> Marketing Agent: Gọi qua AgentCore Runtime
+Marketing Agent -> CleverTap Agent: Ủy thác việc tạo chiến dịch (A2A)
+CleverTap Agent -> MCP Gateway: Gọi các tool CleverTap
+MCP Gateway -> CleverTap: Gọi API (nháp, xác nhận)
+CleverTap --> MCP Gateway: Kết quả
+MCP Gateway --> CleverTap Agent: Kết quả tool
+CleverTap Agent --> Marketing Agent: Chi tiết chiến dịch
+Marketing Agent --> Web UI: Stream xác nhận chiến dịch (SSE)

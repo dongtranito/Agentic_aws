@@ -1,0 +1,11 @@
+title: Bước 3 (Tùy chọn) — Tạo khuyến mãi
+
+Web UI -> API Handler: Người dùng yêu cầu khuyến mãi
+API Handler -> Marketing Agent: Gọi qua AgentCore Runtime
+Marketing Agent -> TalonOne Agent: Ủy thác việc thiết lập khuyến mãi (A2A)
+TalonOne Agent -> MCP Gateway: Gọi các tool TalonOne
+MCP Gateway -> TalonOne: Gọi API (chiến dịch, coupon)
+TalonOne --> MCP Gateway: Kết quả
+MCP Gateway --> TalonOne Agent: Kết quả tool
+TalonOne Agent --> Marketing Agent: Chi tiết khuyến mãi
+Marketing Agent --> Web UI: Stream tóm tắt quy trình (SSE)

@@ -1,0 +1,30 @@
+title: Quy trình tạo chiến dịch
+
+_: **Bước 1 — Định nghĩa đối tượng mục tiêu**
+
+Web UI -> Marketing Agent: Người dùng mô tả đối tượng
+Marketing Agent -> Databricks Agent: Truy vấn dữ liệu đối tượng (A2A)
+Databricks Agent --> Marketing Agent: Kết quả đối tượng
+Marketing Agent --> Web UI: Trình bày đối tượng, hỏi xác nhận
+
+...: Người dùng xác nhận
+
+_: **Bước 2 — Tạo chiến dịch**
+
+Web UI -> Marketing Agent: Người dùng xác nhận đối tượng
+Marketing Agent -> CleverTap Agent: Tạo chiến dịch (A2A)
+CleverTap Agent --> Marketing Agent: Bản nháp + tầm tiếp cận ước tính
+Marketing Agent --> Web UI: Trình bày bản nháp, hỏi xác nhận
+
+...: Người dùng xác nhận
+
+Marketing Agent -> CleverTap Agent: Xác nhận chiến dịch (A2A)
+CleverTap Agent --> Marketing Agent: Chiến dịch đã tạo
+Marketing Agent --> Web UI: Hoàn tất, hỏi về khuyến mãi
+
+_: **Bước 3 (Tùy chọn) — Khuyến mãi**
+
+Web UI -> Marketing Agent: Người dùng muốn khuyến mãi
+Marketing Agent -> TalonOne Agent: Tạo khuyến mãi (A2A)
+TalonOne Agent --> Marketing Agent: Khuyến mãi đã tạo
+Marketing Agent --> Web UI: Quy trình hoàn tất
